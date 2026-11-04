@@ -54,6 +54,8 @@ struct MonthView: View {
                     onEventTap: { selectedEvent = $0 },
                     onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
                 )
+                AboutLinks()
+                    .padding(.top, 20)
             }
             .padding(18)
         }

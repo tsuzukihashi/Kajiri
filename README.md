@@ -97,6 +97,12 @@ DEBUG ビルドだけの起動引数（確かめる・デモを撮るとき用�
 - `-demoHour 10`: 今日の 10:15 から時計を進める（夜中でも日中の画面を確かめるため）
 - `-demoThrow "メモ"`: メモを入れた投げるシートを開く
 
+## ページ
+
+- アプリ紹介: https://tsuzukit.com/kajiri/
+- プライバシーポリシー: https://tsuzukit.com/kajiri/privacy.html
+- 利用規約: https://tsuzukit.com/kajiri/terms.html
+
 ## つくった人
 
 Built with Claude: Japan 2026 の作品です。カジリの絵は ChatGPT の画像生成で作った自作です。

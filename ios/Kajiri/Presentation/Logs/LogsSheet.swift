@@ -53,6 +53,8 @@ struct LogsSheet: View {
                         }
                     )
                 }
+                AboutLinks()
+                    .padding(.top, 12)
             }
             .padding(16)
         }
