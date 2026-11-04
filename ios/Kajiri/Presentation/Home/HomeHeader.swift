@@ -15,6 +15,8 @@ struct HomeHeader: View {
                 HStack(alignment: .bottom, spacing: 8) {
                     Text("\(calendar.component(.day, from: day))")
                         .font(.system(size: 52, weight: .black))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: 3) {
                             Text("\(calendar.component(.month, from: day))月")
@@ -31,6 +33,8 @@ struct HomeHeader: View {
                 .foregroundStyle(Theme.ink)
             }
             .buttonStyle(.plain)
+            // 幅が足りないときは日付のほうを縮め、ボタンは押せる大きさのまま残す
+            .layoutPriority(-1)
             .accessibilityHint(Text("月の予定を開く"))
             Spacer()
             Button("今日", action: onToday)
