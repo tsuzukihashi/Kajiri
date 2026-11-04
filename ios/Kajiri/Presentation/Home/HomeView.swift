@@ -81,6 +81,14 @@ struct HomeView: View {
             // 閉じるときに、次の朝・締め切りの前の日・月曜の通知を入れ直す
             if phase == .background { Task { await useCase.rescheduleNotifications(now: AppClock.now) } }
         }
+        // Siri・アクションボタン・ショートカットの「カジリに投げる」
+        .onChange(of: IntentInbox.shared.pendingThrow, initial: true) { _, memo in
+            guard let memo else { return }
+            IntentInbox.shared.pendingThrow = nil
+            path = []
+            selectedDay = AppClock.now
+            throwRequest = ThrowRequest(memo: memo, sourceEventID: nil)
+        }
         .task(id: notificationSignature) {
             await useCase.rescheduleNotifications(now: AppClock.now)
         }
