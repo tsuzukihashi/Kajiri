@@ -32,6 +32,8 @@ targets:
   Kajiri:
     type: application
     platform: iOS
+    scheme:
+      testTargets: [KajiriTests]
     sources:
       - path: Kajiri
     dependencies:
@@ -69,3 +71,17 @@ targets:
           APP_ATTEST_ENVIRONMENT: development
         Release:
           APP_ATTEST_ENVIRONMENT: production
+
+  KajiriTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: KajiriTests
+    dependencies:
+      - target: Kajiri
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuzukit.KajiriTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Kajiri.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Kajiri
+        BUNDLE_LOADER: $(TEST_HOST)
