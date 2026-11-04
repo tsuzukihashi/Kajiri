@@ -9,10 +9,25 @@ import SwiftData
 final class LogUseCase {
     private let context: ModelContext
     private let api: any KajiriAPIProtocol
+    private let notifications: any NotificationSchedulerProtocol
 
-    init(context: ModelContext, api: any KajiriAPIProtocol) {
+    init(context: ModelContext, api: any KajiriAPIProtocol, notifications: any NotificationSchedulerProtocol) {
         self.context = context
         self.api = api
+        self.notifications = notifications
+    }
+
+    // MARK: 通知
+
+    /// 最初の丸太を保存したときに、通知を出してよいかを聞く（何に使うか分かってから聞く）
+    func askForNotifications() async {
+        await notifications.requestIfNeeded()
+    }
+
+    /// 次の朝・締め切りの前の日・月曜の朝の通知を入れ直す
+    func rescheduleNotifications(now: Date) async {
+        let logs = (try? context.fetch(FetchDescriptor<Log>())) ?? []
+        await notifications.replace(with: NotificationPlanner.plan(steps: allSteps(), logs: logs, now: now))
     }
 
     // MARK: 投げる → かじる
@@ -202,7 +217,7 @@ extension LogUseCase {
             for: Log.self, Step.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        let useCase = LogUseCase(context: container.mainContext, api: MockKajiriAPI(delay: .milliseconds(600), fails: false))
+        let useCase = LogUseCase(context: container.mainContext, api: MockKajiriAPI(delay: .milliseconds(600), fails: false), notifications: MockNotificationScheduler())
         if filled {
             let log = useCase.save(.sampleTax, memo: "確定申告", sourceEventID: nil, now: .now)
             if let first = log.sortedSteps.first {

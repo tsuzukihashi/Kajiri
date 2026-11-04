@@ -23,6 +23,8 @@ struct ThrowSheet: View {
                 onAccept: {
                     viewModel.save(useCase: useCase)
                     dismiss()
+                    // 薪が置かれたところで、朝と締め切りの前の日に知らせてよいかを聞く
+                    Task { await useCase.askForNotifications() }
                 }
             )
         }

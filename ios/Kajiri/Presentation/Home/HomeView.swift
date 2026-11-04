@@ -7,6 +7,7 @@ import SwiftUI
 /// - 今日の分が終わった: 伸びたダムと、このあとの予定
 struct HomeView: View {
     @Environment(CalendarUseCase.self) private var calendar
+    @Environment(LogUseCase.self) private var useCase
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Log.createdAt) private var logs: [Log]
     @Query(sort: \Step.order) private var steps: [Step]
@@ -77,6 +78,11 @@ struct HomeView: View {
         .onChange(of: scenePhase) { _, phase in
             // 設定でカレンダーを許可して戻ってきたとき
             if phase == .active { calendar.refreshAccess() }
+            // 閉じるときに、次の朝・締め切りの前の日・月曜の通知を入れ直す
+            if phase == .background { Task { await useCase.rescheduleNotifications(now: AppClock.now) } }
+        }
+        .task(id: notificationSignature) {
+            await useCase.rescheduleNotifications(now: AppClock.now)
         }
     }
 
@@ -167,6 +173,11 @@ struct HomeView: View {
             .padding(.trailing, 20)
             .padding(.bottom, 110)
         }
+    }
+
+    /// 薪や丸太が増えた・片づいた・締め切りが変わったら、通知を入れ直す
+    private var notificationSignature: String {
+        "\(logs.count)-\(steps.count)-\(steps.filter(\.isDone).count)-\(steps.filter { $0.notBefore != nil }.count)"
     }
 
     private func throwNew() {

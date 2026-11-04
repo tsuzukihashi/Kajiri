@@ -17,7 +17,7 @@ struct KajiriApp: App {
             container = try! ModelContainer(for: Log.self, Step.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         }
         self.container = container
-        _useCase = State(initialValue: LogUseCase(context: container.mainContext, api: KajiriAPI()))
+        _useCase = State(initialValue: LogUseCase(context: container.mainContext, api: KajiriAPI(), notifications: NotificationScheduler()))
         _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: KajiriAPI()))
     }
 
