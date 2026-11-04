@@ -34,8 +34,8 @@
 
 ## まだのこと
 
-- [ ] Google カレンダーのアプリだけを使い、iPhone の設定に Google アカウントを入れていない人には予定が見えない。その案内をどこに出すか
-- [ ] TestFlight: Bundle ID com.tsuzukit.Kajiri は登録済み、1.0.0 (1) の IPA は書き出し済み。ASC のアプリ作成に Web のログイン（2FA）が要るので止まっている。ログインのあとは scratchpad の archive/testflight.sh（アプリ作成 → altool で検証 → アップロード → 内部テスト develop に本人を入れる）を流す
+- [x] Google カレンダーのアプリだけを使い、iPhone の設定に Google アカウントを入れていない人には予定が見えない → 月の表示のいちばん下（Kajiri について の上）に「Google カレンダーの予定が出ないとき」を置いた（押すと足し方が開く。`Presentation/Calendar/MissingEventsHelp.swift`）。画面ではまだ見ていない
+- [x] TestFlight: ASC のアプリ（App ID 6830898965）を作り、1.0.0 (1) を上げた。内部テスト develop（全ビルド）に本人を招待済み（2026-11-05）。次のビルドは CURRENT_PROJECT_VERSION を上げてから
 - [ ] 実機（App Attest）で中継サーバにつながるかを、TestFlight 版で確かめる
 - [ ] デモ動画: 素材は docs/demo/（.gitignore 済み）。kajiri_demo_cut.mp4 は 2分20秒（投げる → 分ける → 通知の許可 → カジリが並行で進める → 1本片づける → 下書き → 月の表示で準備を探す。待ち時間は速めてある）。字幕を入れて最後に名前の札（4秒）を足したものが kajiri_demo.mp4（2分25秒）。ナレーション入りが kajiri_demo_voice.mp4（VOICEVOX 雀松朱司。声の高さと息の少なさで選んだ。アクセントは OJAD に合わせ、ダウンステップを入れた。終わりの札にクレジットあり）。こちらは音を聴けていないので、使うかどうかは本人が聴いて決める。音楽はまだ
 - [ ] 公開リポジトリ（GitHub）、提出

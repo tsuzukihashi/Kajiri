@@ -54,6 +54,9 @@ struct MonthView: View {
                     onEventTap: { selectedEvent = $0 },
                     onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
                 )
+                if calendar.access == .granted {
+                    MissingEventsHelp()
+                }
                 AboutLinks()
                     .padding(.top, 20)
             }
