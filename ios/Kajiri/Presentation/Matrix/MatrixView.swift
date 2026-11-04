@@ -55,12 +55,17 @@ private struct QuadrantBox: View {
                 Text("いまは空っぽ").font(.system(size: 12)).foregroundStyle(isDark ? Color(white: 0.7) : Theme.sub)
             }
             ForEach(steps.prefix(6)) { step in
-                Text(step.title)
-                    .font(.system(size: 12, weight: .bold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(isDark ? Color(white: 0.23) : Theme.chip, in: .rect(cornerRadius: 10))
+                // 薪を押すと、その薪の画面へ（カジリの番は受け取る画面、それ以外は「この1本だけ」）
+                NavigationLink(value: step.owner == .kajiri ? Route.handoff(step.uuid) : Route.focus(step.uuid)) {
+                    Text(step.title)
+                        .font(.system(size: 12, weight: .bold))
+                        .multilineTextAlignment(.leading)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(isDark ? Color(white: 0.23) : Theme.chip, in: .rect(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
             }
             if steps.count > 6 {
                 Text("ほか\(steps.count - 6)本").font(.system(size: 11)).foregroundStyle(isDark ? Color(white: 0.8) : Theme.sub)
@@ -69,7 +74,7 @@ private struct QuadrantBox: View {
         }
         .foregroundStyle(isDark ? .white : Theme.ink)
         .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 220, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 140, alignment: .topLeading)
         .background(background, in: .rect(cornerRadius: 20))
     }
 

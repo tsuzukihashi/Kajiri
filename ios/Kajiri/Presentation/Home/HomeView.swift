@@ -27,7 +27,8 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            content
+            // 中身がモードで入れかわっても、行き先を決める土台は同じものにしておく
+            ZStack { content }
                 .background(Theme.ground)
                 .navigationDestination(for: Route.self) { route in
                     switch route {
@@ -105,7 +106,8 @@ struct HomeView: View {
                 onThrow: { throwNew() },
                 onConnect: { Task { await calendar.requestAccess() } }
             )
-        } else if isToday && (picks.isAllDone || finishedDay == JapanDate.dayString(now)) {
+        } else if path.isEmpty && isToday && (picks.isAllDone || finishedDay == JapanDate.dayString(now)) {
+            // 「この1本だけ」が閉じきってから入れかえる（閉じる途中で入れかえると、開いていた画面が真っ白で残る）
             HomeDoneView(
                 doneToday: picks.done.count,
                 damCount: steps.filter(\.isDone).count,
