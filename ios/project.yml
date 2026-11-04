@@ -1,0 +1,70 @@
+name: Kajiri
+options:
+  bundleIdPrefix: com.tsuzukit
+  developmentLanguage: ja
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+
+# 個人の設定（開発チーム ID）は Config/Local.xcconfig に書く（.gitignore 済み）。
+# Firebase の設定ファイル Kajiri/GoogleService-Info.plist も .gitignore 済み。
+configFiles:
+  Debug: Config/Shared.xcconfig
+  Release: Config/Shared.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  # Apache-2.0。中継サーバ（Firebase Functions）の呼び出しと App Check に使う
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 12.0.0
+
+targets:
+  Kajiri:
+    type: application
+    platform: iOS
+    sources:
+      - path: Kajiri
+    dependencies:
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseFunctions
+      - package: Firebase
+        product: FirebaseAppCheck
+    info:
+      path: Kajiri/Info.plist
+      properties:
+        CFBundleDisplayName: Kajiri
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    entitlements:
+      path: Kajiri/Kajiri.entitlements
+      properties:
+        com.apple.developer.devicecheck.appattest-environment: $(APP_ATTEST_ENVIRONMENT)
+    settings:
+      base:
+        PRODUCT_NAME: Kajiri
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuzukit.Kajiri
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          APP_ATTEST_ENVIRONMENT: development
+        Release:
+          APP_ATTEST_ENVIRONMENT: production

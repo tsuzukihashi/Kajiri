@@ -1,0 +1,2 @@
+// このファイルを Local.xcconfig に写して値を入れる。Local.xcconfig は .gitignore 済み（コミットしない）。
+DEVELOPMENT_TEAM = YOURTEAMID

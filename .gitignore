@@ -1,0 +1,34 @@
+# ---- 秘密情報・個人の設定（絶対にコミットしない） ----
+ios/Config/Local.xcconfig
+ios/Kajiri/GoogleService-Info.plist
+functions/.secret.local
+functions/.env.local
+.firebaserc
+.env
+.env.*
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+
+# ---- Xcode ----
+ios/*.xcodeproj
+ios/*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+*.xcresult
+.swiftpm/
+
+# ---- Firebase / Node ----
+node_modules/
+functions/lib/
+.firebase/
+firebase-debug*.log
+ui-debug.log
+
+# ---- macOS ----
+.DS_Store
+
+# ---- Claude Code（個人の設定は入れない。共有の設定 .claude/settings.json は入れる） ----
+.claude/settings.local.json

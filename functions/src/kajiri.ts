@@ -1,0 +1,54 @@
+import type Anthropic from "@anthropic-ai/sdk";
+import { callJSON, callWithSearch } from "./claude.ts";
+import {
+  DECOMPOSE_SCHEMA,
+  RESPLIT_SCHEMA,
+  decomposeSystemPrompt,
+  decomposeUserText,
+  resplitSystemPrompt,
+  resplitUserText,
+  workSystemPrompt,
+  workUserText,
+} from "./prompts.ts";
+import { parseDecomposeInput, parseResplitInput, parseWorkInput } from "./validate.ts";
+
+/** 雑なメモを、1本の丸太と薪に分ける */
+export async function decompose(data: unknown, client: Anthropic): Promise<unknown> {
+  const input = parseDecomposeInput(data);
+  return callJSON({
+    client,
+    system: decomposeSystemPrompt(),
+    user: decomposeUserText(input),
+    schema: DECOMPOSE_SCHEMA,
+    effort: "medium",
+    maxTokens: 16_000,
+  });
+}
+
+/** 後回しにされた一歩を、もっと小さく割り直す */
+export async function resplit(data: unknown, client: Anthropic): Promise<unknown> {
+  const input = parseResplitInput(data);
+  return callJSON({
+    client,
+    system: resplitSystemPrompt(),
+    user: resplitUserText(input),
+    schema: RESPLIT_SCHEMA,
+    effort: "low",
+    maxTokens: 8_000,
+  });
+}
+
+/** カジリの番の一歩（下書き・調べもの・一覧）を片づける。1行目が見出し、2行目からが中身 */
+export async function work(data: unknown, client: Anthropic): Promise<{ title: string; body: string }> {
+  const input = parseWorkInput(data);
+  const text = await callWithSearch({
+    client,
+    system: workSystemPrompt(),
+    user: workUserText(input),
+    effort: "medium",
+    maxTokens: 16_000,
+  });
+  const [first, ...rest] = text.split("\n");
+  const title = (first ?? "").replace(/^#+\s*/, "").trim();
+  return { title: title || input.work, body: rest.join("\n").trim() || text };
+}
