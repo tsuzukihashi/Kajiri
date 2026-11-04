@@ -23,7 +23,7 @@ final class LogUseCase {
 
     /// 分けた結果を丸太として保存し、カジリの番の薪を裏で同時に進める
     @discardableResult
-    func save(_ result: DecomposeResult, memo: String, now: Date) -> Log {
+    func save(_ result: DecomposeResult, memo: String, sourceEventID: String?, now: Date) -> Log {
         let log = Log(
             title: result.logTitle,
             memo: memo,
@@ -31,7 +31,8 @@ final class LogUseCase {
             deadlineNote: result.deadlineNote,
             why: result.why,
             kajiriComment: result.comment,
-            createdAt: now
+            createdAt: now,
+            sourceEventID: sourceEventID
         )
         context.insert(log)
         for (index, dto) in result.steps.enumerated() {
@@ -141,6 +142,12 @@ final class LogUseCase {
         try? context.save()
     }
 
+    /// 締め切りを iPhone のカレンダーに入れた（同じ締め切りを2回入れないように覚える）
+    func markDeadlineInCalendar(_ log: Log, eventIdentifier: String) {
+        log.deadlineEventID = eventIdentifier
+        try? context.save()
+    }
+
     // MARK: 読む
 
     func allSteps() -> [Step] {
@@ -164,7 +171,7 @@ extension LogUseCase {
         )
         let useCase = LogUseCase(context: container.mainContext, api: MockKajiriAPI(delay: .milliseconds(600), fails: false))
         if filled {
-            let log = useCase.save(.sampleTax, memo: "確定申告", now: .now)
+            let log = useCase.save(.sampleTax, memo: "確定申告", sourceEventID: nil, now: .now)
             if let first = log.sortedSteps.first {
                 first.workState = .ready
             }
@@ -176,7 +183,7 @@ extension LogUseCase {
                 ],
                 comment: "大物から片づけよう。"
             )
-            useCase.save(moving, memo: "引っ越し", now: .now)
+            useCase.save(moving, memo: "引っ越し", sourceEventID: "preview-moving", now: .now)
         }
         return (useCase, container)
     }

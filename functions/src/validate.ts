@@ -6,6 +6,10 @@ const MAX_TITLE = 200;
 export type DecomposeInput = { memo: string; today: string; weekday: string; overrun: number | null };
 export type ResplitInput = { logTitle: string; step: string; postponed: number; today: string };
 export type WorkInput = { logTitle: string; step: string; work: string; memo: string; today: string };
+export type PrepEvent = { id: string; title: string; when: string; location: string };
+export type PrepInput = { today: string; events: PrepEvent[] };
+
+const MAX_EVENTS = 60;
 
 function bad(message: string): never {
   throw new AppError("invalid-argument", "bad_request", message);
@@ -56,5 +60,24 @@ export function parseWorkInput(body: unknown): WorkInput {
     work: text(body.work, "work", MAX_TITLE * 2),
     memo: typeof body.memo === "string" ? body.memo.slice(0, MAX_MEMO) : "",
     today: day(body.today),
+  };
+}
+
+export function parsePrepInput(body: unknown): PrepInput {
+  if (!isRecord(body)) bad("JSON のオブジェクトを送ってください");
+  const events = body.events;
+  if (!Array.isArray(events) || events.length === 0) bad("events が空です");
+  if (events.length > MAX_EVENTS) bad("events が多すぎます");
+  return {
+    today: day(body.today),
+    events: events.map((e): PrepEvent => {
+      if (!isRecord(e)) bad("events の中身がオブジェクトではありません");
+      return {
+        id: text(e.id, "id", MAX_TITLE),
+        title: text(e.title, "title", MAX_TITLE),
+        when: text(e.when, "when", 60),
+        location: typeof e.location === "string" ? e.location.slice(0, MAX_TITLE) : "",
+      };
+    }),
   };
 }

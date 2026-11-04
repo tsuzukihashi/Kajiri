@@ -1,31 +1,54 @@
 import SwiftUI
 
-/// 大きな日付と、4象限への丸いボタン
+/// 大きな日付（押すと月の表示）と、今日へ戻る・予定を足す・4象限のボタン
 struct HomeHeader: View {
-    let now: Date
+    let day: Date
+    let isToday: Bool
+    let canAddEvent: Bool
+    let onToday: () -> Void
+    let onAddEvent: () -> Void
 
     var body: some View {
         let calendar = JapanDate.calendar
-        HStack(alignment: .bottom) {
-            HStack(alignment: .bottom, spacing: 8) {
-                Text("\(calendar.component(.day, from: now))")
-                    .font(.system(size: 52, weight: .black))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("\(calendar.component(.month, from: now))月")
-                        .font(.system(size: 17, weight: .bold))
-                    Text(verbatim: "\(calendar.component(.year, from: now))")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Theme.sub)
+        HStack(alignment: .bottom, spacing: 8) {
+            NavigationLink(value: Route.month) {
+                HStack(alignment: .bottom, spacing: 8) {
+                    Text("\(calendar.component(.day, from: day))")
+                        .font(.system(size: 52, weight: .black))
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 3) {
+                            Text("\(calendar.component(.month, from: day))月")
+                                .font(.system(size: 17, weight: .bold))
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 11, weight: .heavy))
+                        }
+                        Text(verbatim: "\(calendar.component(.year, from: day))・\(JapanDate.weekdaySymbol(day))")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Theme.sub)
+                    }
+                    .padding(.bottom, 6)
                 }
-                .padding(.bottom, 6)
+                .foregroundStyle(Theme.ink)
             }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("月の予定を開く"))
             Spacer()
-            Text("今日")
+            Button("今日", action: onToday)
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(isToday ? .white : Theme.ink)
                 .padding(.horizontal, 16)
                 .frame(height: 44)
-                .background(Theme.ink, in: .capsule)
+                .background(isToday ? Theme.ink : Theme.chip, in: .capsule)
+            if canAddEvent {
+                Button(action: onAddEvent) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(width: 44, height: 44)
+                        .background(Theme.chip, in: .circle)
+                }
+                .accessibilityLabel(Text("予定を足す"))
+            }
             NavigationLink(value: Route.matrix) {
                 Image(systemName: "square.grid.2x2")
                     .font(.system(size: 18, weight: .semibold))
@@ -39,8 +62,14 @@ struct HomeHeader: View {
     }
 }
 
-#Preview {
+#Preview("今日") {
     NavigationStack {
-        HomeHeader(now: .now)
+        HomeHeader(day: .now, isToday: true, canAddEvent: true, onToday: {}, onAddEvent: {})
+    }
+}
+
+#Preview("ほかの日・カレンダーなし") {
+    NavigationStack {
+        HomeHeader(day: JapanDate.addingDays(3, to: .now), isToday: false, canAddEvent: false, onToday: {}, onAddEvent: {})
     }
 }

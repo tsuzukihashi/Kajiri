@@ -8,4 +8,6 @@ enum Route: Hashable {
     case handoff(UUID)
     /// 4象限（川辺の地図）
     case matrix
+    /// 月の予定と、カジリに準備を見てもらう
+    case month
 }

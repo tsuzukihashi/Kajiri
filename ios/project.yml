@@ -48,6 +48,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+        NSCalendarsFullAccessUsageDescription: 予定を1日の線に並べ、予定のすき間に薪を置くために使います。予定はこの iPhone の中で読みます。「カジリに見てもらう」を押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
     entitlements:

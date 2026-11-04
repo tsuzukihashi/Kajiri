@@ -2,9 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MODEL, makeClient } from "../src/claude.ts";
 import { AppError } from "../src/errors.ts";
-import { decompose, resplit, work } from "../src/kajiri.ts";
-import { DECOMPOSE_SCHEMA, RESPLIT_SCHEMA } from "../src/prompts.ts";
-import { parseDecomposeInput, parseResplitInput } from "../src/validate.ts";
+import { decompose, prep, resplit, work } from "../src/kajiri.ts";
+import { DECOMPOSE_SCHEMA, PREP_SCHEMA, RESPLIT_SCHEMA } from "../src/prompts.ts";
+import { parseDecomposeInput, parsePrepInput, parseResplitInput } from "../src/validate.ts";
 
 /** Claude API の代わりに決まった返事を返す fetch。送った中身も控える */
 function fakeFetch(response: { status: number; body: unknown }, seen: { body?: any; headers?: Headers }) {
@@ -127,4 +127,34 @@ function assertStrictObjects(schema: unknown, path: string): void {
 test("スキーマが structured outputs の制約を守っている", () => {
   assertStrictObjects(DECOMPOSE_SCHEMA, "$");
   assertStrictObjects(RESPLIT_SCHEMA, "$");
+});
+
+test("準備: 予定を送り、届いていない id は捨てる", async () => {
+  const seen: { body?: any; headers?: Headers } = {};
+  const reply = {
+    picks: [
+      { event_id: "e1", reason: "荷造りがあるな", memo: "12月20日 引っ越し。荷造りの準備" },
+      { event_id: "nope", reason: "x", memo: "x" },
+    ],
+    comment: "1つ見つけた。",
+  };
+  const client = makeClient("test-key", fakeFetch({ status: 200, body: message(JSON.stringify(reply), "end_turn") }, seen));
+  const result = await prep(
+    { today: "2026-11-04", events: [{ id: "e1", title: "引っ越し", when: "12/20(日) 終日", location: "" }] },
+    client,
+  );
+  assert.deepEqual(result.picks.map((p) => p.event_id), ["e1"]);
+  assert.equal(seen.body.output_config.format.type, "json_schema");
+  assert.match(seen.body.messages[0].content, /id=e1 \| 12\/20\(日\) 終日 \| 引っ越し/);
+});
+
+test("準備: 予定が空なら断る", () => {
+  assert.throws(() => parsePrepInput({ today: "2026-11-04", events: [] }), AppError);
+});
+
+test("準備の形: すべての object が additionalProperties:false で、全部が required", () => {
+  const item = PREP_SCHEMA.properties.picks.items;
+  assert.equal(PREP_SCHEMA.additionalProperties, false);
+  assert.equal(item.additionalProperties, false);
+  assert.deepEqual([...item.required].sort(), Object.keys(item.properties).sort());
 });

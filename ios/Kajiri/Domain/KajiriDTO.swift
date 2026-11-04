@@ -74,3 +74,32 @@ extension DecomposeResult {
     )
 }
 #endif
+
+/// カジリに準備を見てもらう予定1件（名前・日時・場所だけを送る）
+struct PrepEventDTO: Encodable, Sendable {
+    let id: String
+    let title: String
+    /// 例: 11/20(木) 10:00〜11:00、12/20(日) 終日
+    let when: String
+    let location: String
+}
+
+/// 準備が要りそうだと、カジリが選んだ予定
+struct PrepPick: Decodable, Sendable, Hashable, Identifiable {
+    let eventID: String
+    let reason: String
+    /// 投げるメモの下書き
+    let memo: String
+
+    var id: String { eventID }
+
+    enum CodingKeys: String, CodingKey {
+        case reason, memo
+        case eventID = "event_id"
+    }
+}
+
+struct PrepResult: Decodable, Sendable, Equatable {
+    let picks: [PrepPick]
+    let comment: String
+}

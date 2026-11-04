@@ -5,7 +5,7 @@ import { setGlobalOptions } from "firebase-functions/v2";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { makeClient } from "./claude.ts";
 import { AppError } from "./errors.ts";
-import { decompose, resplit, work } from "./kajiri.ts";
+import { decompose, prep, resplit, work } from "./kajiri.ts";
 
 /**
  * Kajiri の中継サーバ（Firebase Functions）。
@@ -31,6 +31,11 @@ export const kajiriResplit = onCall(
 export const kajiriWork = onCall(
   { secrets: [anthropicApiKey], enforceAppCheck: true, timeoutSeconds: 300, memory: "512MiB" },
   (request) => run(() => work(request.data, makeClient(anthropicApiKey.value(), null))),
+);
+
+export const kajiriPrep = onCall(
+  { secrets: [anthropicApiKey], enforceAppCheck: true, timeoutSeconds: 120 },
+  (request) => run(() => prep(request.data, makeClient(anthropicApiKey.value(), null))),
 );
 
 async function run<T>(task: () => Promise<T>): Promise<T> {

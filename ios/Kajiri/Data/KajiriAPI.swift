@@ -7,6 +7,7 @@ protocol KajiriAPIProtocol: Sendable {
     func decompose(memo: String, today: Date, overrun: Double?) async throws -> DecomposeResult
     func resplit(logTitle: String, step: String, postponed: Int, today: Date) async throws -> ResplitResult
     func work(logTitle: String, step: String, work: String, memo: String, today: Date) async throws -> WorkResult
+    func prep(events: [PrepEventDTO], today: Date) async throws -> PrepResult
 }
 
 enum KajiriAPIError: LocalizedError, Sendable {
@@ -71,6 +72,14 @@ struct KajiriAPI: KajiriAPIProtocol {
         return try await call("kajiriWork", body, timeout: 300)
     }
 
+    func prep(events: [PrepEventDTO], today: Date) async throws -> PrepResult {
+        struct Body: Encodable, Sendable {
+            let today: String
+            let events: [PrepEventDTO]
+        }
+        return try await call("kajiriPrep", Body(today: JapanDate.dayString(today), events: events), timeout: 120)
+    }
+
     private func call<Request: Encodable & Sendable, Response: Decodable & Sendable>(
         _ name: String,
         _ request: Request,
@@ -121,6 +130,15 @@ struct MockKajiriAPI: KajiriAPIProtocol {
         try await Task.sleep(for: delay)
         if fails { throw KajiriAPIError.server(message: "混み合っています。") }
         return WorkResult(title: "問い合わせへの返信の下書き", body: "お問い合わせありがとうございます。\n確認して、あらためてご連絡します。\n\n（ここに一言）")
+    }
+
+    func prep(events: [PrepEventDTO], today: Date) async throws -> PrepResult {
+        try await Task.sleep(for: delay)
+        if fails { throw KajiriAPIError.server(message: "混み合っています。") }
+        let picks = events.filter { $0.title.contains("発表") || $0.title.contains("引っ越し") }.map {
+            PrepPick(eventID: $0.id, reason: "当日までに手を動かすことがありそうだ。", memo: "\($0.when) \($0.title)。準備")
+        }
+        return PrepResult(picks: picks, comment: picks.isEmpty ? "いまのところ、準備が要りそうな予定はないな。" : "\(picks.count)つ、先にかじっておくと楽なのがある。")
     }
 }
 #endif

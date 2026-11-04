@@ -12,8 +12,15 @@ final class ThrowViewModel {
         case failed(String)
     }
 
-    var memo = ""
+    var memo: String
+    /// カレンダーの予定から投げたなら、その予定
+    let sourceEventID: String?
     private(set) var phase: Phase = .editing
+
+    init(memo: String, sourceEventID: String?) {
+        self.memo = memo
+        self.sourceEventID = sourceEventID
+    }
 
     var canSplit: Bool {
         !memo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && phase != .splitting
@@ -32,7 +39,7 @@ final class ThrowViewModel {
 
     func save(useCase: LogUseCase) {
         guard case let .result(result) = phase else { return }
-        useCase.save(result, memo: memo, now: .now)
+        useCase.save(result, memo: memo, sourceEventID: sourceEventID, now: .now)
     }
 
     func backToEditing() {

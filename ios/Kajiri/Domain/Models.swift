@@ -14,11 +14,15 @@ final class Log {
     var why: String
     var kajiriComment: String
     var createdAt: Date
+    /// カレンダーの予定から投げた丸太なら、その予定（CalendarEvent.id）
+    var sourceEventID: String?
+    /// 締め切りを iPhone のカレンダーに入れたなら、その予定（EKEvent.eventIdentifier）
+    var deadlineEventID: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Step.log)
     var steps: [Step]
 
-    init(title: String, memo: String, deadline: Date?, deadlineNote: String, why: String, kajiriComment: String, createdAt: Date) {
+    init(title: String, memo: String, deadline: Date?, deadlineNote: String, why: String, kajiriComment: String, createdAt: Date, sourceEventID: String?) {
         self.uuid = UUID()
         self.title = title
         self.memo = memo
@@ -27,6 +31,8 @@ final class Log {
         self.why = why
         self.kajiriComment = kajiriComment
         self.createdAt = createdAt
+        self.sourceEventID = sourceEventID
+        self.deadlineEventID = nil
         self.steps = []
     }
 

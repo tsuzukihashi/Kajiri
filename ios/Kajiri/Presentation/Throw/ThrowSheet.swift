@@ -5,8 +5,12 @@ import SwiftUI
 struct ThrowSheet: View {
     @Environment(LogUseCase.self) private var useCase
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel = ThrowViewModel()
+    @State private var viewModel: ThrowViewModel
     @FocusState private var isMemoFocused: Bool
+
+    init(request: ThrowRequest) {
+        _viewModel = State(initialValue: ThrowViewModel(memo: request.memo, sourceEventID: request.sourceEventID))
+    }
 
     var body: some View {
         switch viewModel.phase {
@@ -95,7 +99,14 @@ struct ThrowSheet: View {
 #if DEBUG
 #Preview("投げる") {
     let (useCase, container) = LogUseCase.preview(filled: false)
-    ThrowSheet()
+    ThrowSheet(request: ThrowRequest(memo: "", sourceEventID: nil))
+        .environment(useCase)
+        .modelContainer(container)
+}
+
+#Preview("予定から投げる") {
+    let (useCase, container) = LogUseCase.preview(filled: false)
+    ThrowSheet(request: ThrowRequest(memo: "12月20日 引っ越し。荷造りの準備", sourceEventID: "preview"))
         .environment(useCase)
         .modelContainer(container)
 }

@@ -2,15 +2,18 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { callJSON, callWithSearch } from "./claude.ts";
 import {
   DECOMPOSE_SCHEMA,
+  PREP_SCHEMA,
   RESPLIT_SCHEMA,
   decomposeSystemPrompt,
   decomposeUserText,
+  prepSystemPrompt,
+  prepUserText,
   resplitSystemPrompt,
   resplitUserText,
   workSystemPrompt,
   workUserText,
 } from "./prompts.ts";
-import { parseDecomposeInput, parseResplitInput, parseWorkInput } from "./validate.ts";
+import { parseDecomposeInput, parsePrepInput, parseResplitInput, parseWorkInput } from "./validate.ts";
 
 /** 雑なメモを、1本の丸太と薪に分ける */
 export async function decompose(data: unknown, client: Anthropic): Promise<unknown> {
@@ -51,4 +54,20 @@ export async function work(data: unknown, client: Anthropic): Promise<{ title: s
   const [first, ...rest] = text.split("\n");
   const title = (first ?? "").replace(/^#+\s*/, "").trim();
   return { title: title || input.work, body: rest.join("\n").trim() || text };
+}
+
+/** カレンダーの予定から、当日までに準備が要りそうなものを選ぶ */
+export async function prep(data: unknown, client: Anthropic): Promise<{ picks: { event_id: string; reason: string; memo: string }[]; comment: string }> {
+  const input = parsePrepInput(data);
+  const result = await callJSON<{ picks: { event_id: string; reason: string; memo: string }[]; comment: string }>({
+    client,
+    system: prepSystemPrompt(),
+    user: prepUserText(input),
+    schema: PREP_SCHEMA,
+    effort: "low",
+    maxTokens: 8_000,
+  });
+  // 届いていない id を返してきたら捨てる（アプリ側で予定と結び付けられない）
+  const ids = new Set(input.events.map((e) => e.id));
+  return { picks: result.picks.filter((p) => ids.has(p.event_id)).slice(0, 5), comment: result.comment };
 }

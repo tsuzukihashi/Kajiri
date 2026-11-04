@@ -3,7 +3,10 @@ import SwiftUI
 
 /// 丸太の一覧。丸太ごとに、どこまで進んだか・いま誰の番かを並べて見せる
 struct LogsSheet: View {
+    @Environment(CalendarUseCase.self) private var calendar
+    @Environment(LogUseCase.self) private var useCase
     @Query(sort: \Log.createdAt, order: .reverse) private var logs: [Log]
+    @State private var editor: DeadlineEditor?
 
     var body: some View {
         ScrollView {
@@ -24,17 +27,41 @@ struct LogsSheet: View {
                     )
                 }
                 ForEach(logs) { log in
-                    LogCard(log: log)
+                    LogCard(
+                        log: log,
+                        canAddToCalendar: calendar.access == .granted,
+                        onAddDeadline: {
+                            if let request = calendar.deadlineRequest(for: log) {
+                                editor = DeadlineEditor(log: log, request: request)
+                            }
+                        }
+                    )
                 }
             }
             .padding(16)
         }
         .background(Theme.card)
+        .sheet(item: $editor) { target in
+            EventEditorView(request: target.request) { savedID in
+                if let savedID { useCase.markDeadlineInCalendar(target.log, eventIdentifier: savedID) }
+                editor = nil
+            }
+            .ignoresSafeArea()
+        }
     }
+}
+
+/// 締め切りを iPhone のカレンダーに入れる画面を開いている丸太
+private struct DeadlineEditor: Identifiable {
+    let log: Log
+    let request: EventEditorRequest
+    var id: UUID { request.id }
 }
 
 private struct LogCard: View {
     let log: Log
+    let canAddToCalendar: Bool
+    let onAddDeadline: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -59,9 +86,32 @@ private struct LogCard: View {
             if !log.why.isEmpty {
                 Text(log.why).font(.system(size: 12)).foregroundStyle(Theme.sub)
             }
+            deadlineRow
         }
         .padding(14)
         .background(Theme.ground, in: .rect(cornerRadius: 18))
+    }
+
+    /// 締め切りを iPhone のカレンダーに入れる（入れたら、入っていることだけ見せる）
+    @ViewBuilder
+    private var deadlineRow: some View {
+        if log.deadline != nil && !log.isFinished {
+            if log.deadlineEventID != nil {
+                Label("締め切りはカレンダーに入っています", systemImage: "calendar.badge.checkmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Theme.sub)
+            } else if canAddToCalendar {
+                Button(action: onAddDeadline) {
+                    Label("締め切りをカレンダーに入れる", systemImage: "calendar.badge.plus")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Theme.ink)
+                        .padding(.horizontal, 12)
+                        .frame(minHeight: 36)
+                        .background(Theme.chip, in: .capsule)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     private func turnLabel(_ step: Step) -> String {
@@ -94,12 +144,18 @@ private struct ProgressPips: View {
 
 #if DEBUG
 #Preview("丸太がある") {
-    let (_, container) = LogUseCase.preview(filled: true)
-    LogsSheet().modelContainer(container)
+    let (useCase, container) = LogUseCase.preview(filled: true)
+    LogsSheet()
+        .environment(useCase)
+        .environment(CalendarUseCase.preview(access: .granted))
+        .modelContainer(container)
 }
 
 #Preview("空") {
-    let (_, container) = LogUseCase.preview(filled: false)
-    LogsSheet().modelContainer(container)
+    let (useCase, container) = LogUseCase.preview(filled: false)
+    LogsSheet()
+        .environment(useCase)
+        .environment(CalendarUseCase.preview(access: .granted))
+        .modelContainer(container)
 }
 #endif

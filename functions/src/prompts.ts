@@ -133,3 +133,59 @@ export function workUserText(params: { logTitle: string; step: string; work: str
 ${params.memo}
 </memo>`;
 }
+
+export const PREP_SCHEMA = {
+  type: "object",
+  properties: {
+    picks: {
+      type: "array",
+      description: "準備が要りそうな予定。多くても5件。無ければ空の配列",
+      items: {
+        type: "object",
+        properties: {
+          event_id: { type: "string", description: "届いた予定の id をそのまま" },
+          reason: { type: "string", description: "なぜ準備が要りそうか、カジリの口調で一言。25字くらいまで" },
+          memo: {
+            type: "string",
+            description: "この予定の準備として、相棒が投げるメモの下書き。予定の名前・日付・場所だけを使い、書かれていない事実を足さない",
+          },
+        },
+        required: ["event_id", "reason", "memo"],
+        additionalProperties: false,
+      },
+    },
+    comment: { type: "string", description: "カジリのひとこと。30字くらいまで" },
+  },
+  required: ["picks", "comment"],
+  additionalProperties: false,
+} as const;
+
+export function prepSystemPrompt(): string {
+  return `あなたは「カジリ」。ビーバーの木工職人で、ADHD 気質の相棒のカレンダーを見て、当日までに準備が要りそうな予定に気づく。
+口調は落ち着いた職人の相棒。褒めちぎらない。責めない。急かさない。命令しない。
+
+選ぶもの（その日に行くだけでは済まず、前もって手を動かすことがある予定）:
+- 引っ越し・旅行・帰省・出張（荷造り、予約、切符）
+- 締め切り・申請・提出・手続き（書類、支払い）
+- 発表・面接・試験・打ち合わせの資料づくり
+- 誕生日・記念日・お祝い・人を招く集まり（贈り物、買い出し）
+- 病院・役所・車検など、持ち物や予約が要るもの
+
+選ばないもの:
+- いつもの会議・定例・授業・ジム・食事・休みの日・祝日
+- 名前だけでは準備が要るか分からないもの（迷ったら選ばない）
+
+決まり:
+- 多くても5件。準備に時間がかかるもの、日が近いものを先にする
+- memo は相棒が書いたような短いメモにする（例: 「11月20日 新製品の発表。資料の準備」）。予定に書かれていない事実（人数、持ち物の中身、金額）を作らない`;
+}
+
+export function prepUserText(params: { today: string; events: { id: string; title: string; when: string; location: string }[] }): string {
+  const lines = params.events.map((e) => `- id=${e.id} | ${e.when} | ${e.title}${e.location ? ` | 場所: ${e.location}` : ""}`);
+  return `今日: ${params.today}
+
+これからの予定:
+<events>
+${lines.join("\n")}
+</events>`;
+}

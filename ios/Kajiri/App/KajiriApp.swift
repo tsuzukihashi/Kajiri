@@ -5,6 +5,7 @@ import SwiftUI
 struct KajiriApp: App {
     private let container: ModelContainer
     @State private var useCase: LogUseCase
+    @State private var calendar: CalendarUseCase
 
     init() {
         FirebaseSetup.configure()
@@ -17,12 +18,14 @@ struct KajiriApp: App {
         }
         self.container = container
         _useCase = State(initialValue: LogUseCase(context: container.mainContext, api: KajiriAPI()))
+        _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: KajiriAPI()))
     }
 
     var body: some Scene {
         WindowGroup {
             HomeView()
                 .environment(useCase)
+                .environment(calendar)
         }
         .modelContainer(container)
     }

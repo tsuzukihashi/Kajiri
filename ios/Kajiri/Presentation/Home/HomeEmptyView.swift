@@ -2,7 +2,9 @@ import SwiftUI
 
 /// まだ丸太が1本も無いとき。カジリが「投げて」と待っている
 struct HomeEmptyView: View {
+    let access: CalendarAccess
     let onThrow: () -> Void
+    let onConnect: () -> Void
 
     var body: some View {
         VStack(spacing: 6) {
@@ -19,16 +21,27 @@ struct HomeEmptyView: View {
             .padding(.horizontal, 28)
             .padding(.top, 8)
             Spacer()
-            Button("最初の丸太を投げる", action: onThrow)
-                .buttonStyle(PrimaryButtonStyle())
-                .padding(.horizontal, 18)
-                .padding(.bottom, 24)
+            VStack(spacing: 8) {
+                Button("最初の丸太を投げる", action: onThrow)
+                    .buttonStyle(PrimaryButtonStyle())
+                if access == .notDetermined {
+                    Button("先にカレンダーの予定を並べる", action: onConnect)
+                        .buttonStyle(SecondaryButtonStyle())
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 24)
         }
         .frame(maxWidth: .infinity)
     }
 }
 
-#Preview {
-    HomeEmptyView {}
+#Preview("カレンダーをまだ聞いていない") {
+    HomeEmptyView(access: .notDetermined, onThrow: {}, onConnect: {})
+        .background(Theme.ground)
+}
+
+#Preview("カレンダーは断られた") {
+    HomeEmptyView(access: .denied, onThrow: {}, onConnect: {})
         .background(Theme.ground)
 }
