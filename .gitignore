@@ -32,3 +32,6 @@ ui-debug.log
 
 # ---- Claude Code（個人の設定は入れない。共有の設定 .claude/settings.json は入れる） ----
 .claude/settings.local.json
+
+# ---- デモ動画の素材（大きいのでリポジトリに入れない） ----
+docs/demo/

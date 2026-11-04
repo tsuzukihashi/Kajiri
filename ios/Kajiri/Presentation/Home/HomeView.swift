@@ -72,7 +72,13 @@ struct HomeView: View {
             // 確かめる・デモを撮るとき用: -demoThrow "メモ" で、メモを入れた投げるシートを開く
             let arguments = ProcessInfo.processInfo.arguments
             if let index = arguments.firstIndex(of: "-demoThrow"), index + 1 < arguments.count {
-                throwRequest = ThrowRequest(memo: arguments[index + 1], sourceEventID: nil)
+                let memo = arguments[index + 1]
+                // -demoThrowAfter 4: ホームを見せてから開く（デモ動画用）
+                let delay = arguments.firstIndex(of: "-demoThrowAfter").flatMap { $0 + 1 < arguments.count ? Double(arguments[$0 + 1]) : nil } ?? 0
+                Task {
+                    try? await Task.sleep(for: .seconds(delay))
+                    throwRequest = ThrowRequest(memo: memo, sourceEventID: nil)
+                }
             }
         }
         #endif
