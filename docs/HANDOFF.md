@@ -36,5 +36,5 @@
 - [ ] Google カレンダーのアプリだけを使い、iPhone の設定に Google アカウントを入れていない人には予定が見えない。その案内をどこに出すか
 - [ ] TestFlight: Bundle ID com.tsuzukit.Kajiri は登録済み、1.0.0 (1) の IPA は書き出し済み。ASC のアプリ作成に Web のログイン（2FA）が要るので止まっている。ログインのあとは scratchpad の archive/testflight.sh（アプリ作成 → altool で検証 → アップロード → 内部テスト develop に本人を入れる）を流す
 - [ ] 実機（App Attest）で中継サーバにつながるかを、TestFlight 版で確かめる
-- [ ] デモ動画: 素材は docs/demo/（.gitignore 済み）。kajiri_demo_cut.mp4 は 2分20秒（投げる → 分ける → 通知の許可 → カジリが並行で進める → 1本片づける → 下書き → 月の表示で準備を探す。待ち時間は速めてある）。音声・字幕・テロップはまだ
+- [ ] デモ動画: 素材は docs/demo/（.gitignore 済み）。kajiri_demo_cut.mp4 は 2分20秒（投げる → 分ける → 通知の許可 → カジリが並行で進める → 1本片づける → 下書き → 月の表示で準備を探す。待ち時間は速めてある）。字幕を入れて最後に名前の札（4秒）を足したものが kajiri_demo.mp4（2分25秒）。ナレーション・音楽はまだ
 - [ ] 公開リポジトリ（GitHub）、提出
