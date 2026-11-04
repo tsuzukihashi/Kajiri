@@ -62,7 +62,7 @@ export async function callWithSearch(params: {
       fallbacks: "default",
       system: params.system,
       messages: [{ role: "user", content: params.user }],
-      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 4 }],
+      tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 8 }],
       output_config: { effort: params.effort },
     }),
   );

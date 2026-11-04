@@ -31,7 +31,7 @@ final class ThrowViewModel {
         guard !text.isEmpty else { return }
         phase = .splitting
         do {
-            phase = .result(try await useCase.decompose(memo: text, now: .now))
+            phase = .result(try await useCase.decompose(memo: text, now: AppClock.now))
         } catch {
             phase = .failed(error.localizedDescription)
         }
@@ -39,7 +39,7 @@ final class ThrowViewModel {
 
     func save(useCase: LogUseCase) {
         guard case let .result(result) = phase else { return }
-        useCase.save(result, memo: memo, sourceEventID: sourceEventID, now: .now)
+        useCase.save(result, memo: memo, sourceEventID: sourceEventID, now: AppClock.now)
     }
 
     func backToEditing() {

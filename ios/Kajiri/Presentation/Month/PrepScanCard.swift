@@ -10,10 +10,10 @@ struct PrepScanCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
-                KajiriImage(pose: .think, size: 52)
-                VStack(alignment: .leading, spacing: 4) {
+                KajiriImage(pose: .think, size: 44)
+                VStack(alignment: .leading, spacing: 3) {
                     Text("準備が要りそうな予定を探す").font(.system(size: 15, weight: .heavy))
-                    Text("この先2週間の予定の名前・日時・場所をカジリに送って、当日までに手を動かすことがありそうな予定を選んでもらいます。")
+                    Text("押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。")
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.sub)
                 }

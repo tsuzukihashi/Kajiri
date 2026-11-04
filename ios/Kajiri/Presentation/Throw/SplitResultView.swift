@@ -29,7 +29,9 @@ struct SplitResultView: View {
                 Button("これでいこう", action: onAccept).buttonStyle(PrimaryButtonStyle())
             }
             .padding(.horizontal, 16)
+            .padding(.top, 10)
             .padding(.bottom, 16)
+            .background(Theme.ground.shadow(.drop(color: .black.opacity(0.06), radius: 6, y: -3)))
         }
         .background(Theme.ground)
     }

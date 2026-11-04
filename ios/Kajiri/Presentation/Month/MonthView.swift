@@ -8,18 +8,27 @@ struct MonthView: View {
     @Query(sort: \Log.createdAt) private var logs: [Log]
     @Query(sort: \Step.order) private var steps: [Step]
 
-    @State private var month = Date.now
-    @State private var selectedDay = Date.now
+    @State private var month = AppClock.now
+    @State private var selectedDay = AppClock.now
     @State private var scan = PrepScanViewModel()
     @State private var throwRequest: ThrowRequest?
     @State private var selectedEvent: CalendarEvent?
     @State private var editor: EventEditorRequest?
 
     var body: some View {
-        let now = Date.now
+        let now = AppClock.now
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 MonthHeader(month: month, onMove: move)
+                // カジリならではの機能なので、月の表より先に置く（下に埋めると見つからない）
+                if calendar.access == .granted {
+                    PrepScanCard(
+                        viewModel: scan,
+                        linked: linkedEventIDs(),
+                        onScan: { Task { await scan.scan(calendar: calendar, linked: linkedEventIDs(), now: AppClock.now) } },
+                        onThrow: { pick in throwRequest = ThrowRequest(memo: pick.memo, sourceEventID: pick.eventID) }
+                    )
+                }
                 if calendar.access != .granted {
                     CalendarConnectCard(access: calendar.access) {
                         Task { await calendar.requestAccess() }
@@ -45,14 +54,6 @@ struct MonthView: View {
                     onEventTap: { selectedEvent = $0 },
                     onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
                 )
-                if calendar.access == .granted {
-                    PrepScanCard(
-                        viewModel: scan,
-                        linked: linkedEventIDs(),
-                        onScan: { Task { await scan.scan(calendar: calendar, linked: linkedEventIDs(), now: .now) } },
-                        onThrow: { pick in throwRequest = ThrowRequest(memo: pick.memo, sourceEventID: pick.eventID) }
-                    )
-                }
             }
             .padding(18)
         }
@@ -74,8 +75,8 @@ struct MonthView: View {
         guard let next = calendar.date(byAdding: .month, value: months, to: month) else { return }
         month = next
         // 今月に戻ったら今日、ほかの月なら1日を選ぶ
-        if calendar.isDate(next, equalTo: .now, toGranularity: .month) {
-            selectedDay = .now
+        if calendar.isDate(next, equalTo: AppClock.now, toGranularity: .month) {
+            selectedDay = AppClock.now
         } else {
             selectedDay = calendar.date(from: calendar.dateComponents([.year, .month], from: next)) ?? next
         }

@@ -26,6 +26,13 @@ struct KajiriApp: App {
             HomeView()
                 .environment(useCase)
                 .environment(calendar)
+                #if DEBUG
+                .task {
+                    await DemoSeeder.seedIfAsked()
+                    calendar.refreshAccess()
+                    calendar.reload()
+                }
+                #endif
         }
         .modelContainer(container)
     }

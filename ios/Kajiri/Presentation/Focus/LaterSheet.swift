@@ -58,7 +58,7 @@ struct LaterSheet: View {
                 Task { await viewModel.resplit(step, useCase: useCase) }
             }
             ReasonButton(title: "いまじゃない", detail: "明日また、今日の薪に出す", symbol: "clock") {
-                useCase.postpone(step, now: .now)
+                useCase.postpone(step, now: AppClock.now)
                 onClose(true)
             }
             ReasonButton(title: "気が乗らない・頼みたい", detail: "仲間に頼む側へ回す", symbol: "person.2") {

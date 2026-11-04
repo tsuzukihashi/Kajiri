@@ -29,7 +29,7 @@ struct HandoffView: View {
                         if let log = step.log {
                             Text("丸太: \(log.title)").font(.system(size: 12)).foregroundStyle(Theme.sub)
                         }
-                        Text(step.workTitle ?? step.title).font(.system(size: 20, weight: .heavy))
+                        Text(PlainText.clean(step.workTitle ?? step.title)).font(.system(size: 20, weight: .heavy))
                         Text(statusText(step)).font(.system(size: 13)).foregroundStyle(Theme.sub)
                     }
                 }
@@ -49,7 +49,7 @@ struct HandoffView: View {
                         Text(step.workBody ?? String(localized: "うまく作れませんでした。"))
                             .font(.system(size: 14))
                         Button("もう一度たのむ") {
-                            Task { await useCase.runWork(step, now: .now) }
+                            Task { await useCase.runWork(step, now: AppClock.now) }
                         }
                         .buttonStyle(PrimaryButtonStyle())
                     }
@@ -62,7 +62,8 @@ struct HandoffView: View {
     }
 
     private func readyContent(_ step: Step) -> some View {
-        let body = step.workBody ?? ""
+        // 前の版で保存した下書きに Markdown が残っていても、記号を見せない
+        let body = PlainText.clean(step.workBody ?? "")
         return VStack(alignment: .leading, spacing: 12) {
             Text(body)
                 .font(.system(size: 15))
@@ -86,7 +87,7 @@ struct HandoffView: View {
                 }
             }
             Button("受け取った（済みにする）") {
-                useCase.complete(step, now: .now)
+                useCase.complete(step, now: AppClock.now)
                 dismiss()
             }
             .buttonStyle(PrimaryButtonStyle())

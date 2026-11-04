@@ -89,8 +89,14 @@ struct TimelineFreeRow: View {
                 Text("気になってることを投げておくと、カジリが薪にして、ここに置きます。")
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.sub)
-                Button("丸太を投げる", action: onThrow)
-                    .buttonStyle(SecondaryButtonStyle())
+                Button(action: onThrow) {
+                    Label("丸太を投げる", systemImage: "plus")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(.white, in: .rect(cornerRadius: 14))
+                }
+                .buttonStyle(.plain)
             }
         } else if steps.isEmpty && kajiriSteps.isEmpty {
             Text("いま、じぶんの番の薪はありません。カジリと仲間の番です。")

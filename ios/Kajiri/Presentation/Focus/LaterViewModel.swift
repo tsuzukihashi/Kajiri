@@ -20,7 +20,7 @@ final class LaterViewModel {
     func resplit(_ step: Step, useCase: LogUseCase) async {
         phase = .resplitting
         do {
-            phase = .resplit(try await useCase.resplit(step, now: .now))
+            phase = .resplit(try await useCase.resplit(step, now: AppClock.now))
         } catch {
             phase = .failed(error.localizedDescription)
         }
@@ -28,6 +28,6 @@ final class LaterViewModel {
 
     func accept(_ step: Step, useCase: LogUseCase) {
         guard case let .resplit(result) = phase else { return }
-        useCase.apply(result, replacing: step, now: .now)
+        useCase.apply(result, replacing: step, now: AppClock.now)
     }
 }

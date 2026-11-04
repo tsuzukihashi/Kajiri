@@ -141,7 +141,8 @@ final class CalendarUseCase {
         return String(format: "%d:%02d", c.hour ?? 0, c.minute ?? 0)
     }
 
-    private func reload() {
+    /// 読み直す（カレンダーが変わったとき）
+    func reload() {
         cache = [:]
         revision += 1
     }

@@ -14,7 +14,7 @@ struct HomeView: View {
     @State private var path: [Route] = []
     @State private var throwRequest: ThrowRequest?
     @State private var showsLogs = false
-    @State private var selectedDay = Date.now
+    @State private var selectedDay = AppClock.now
     @State private var selectedEvent: CalendarEvent?
     @State private var editor: EventEditorRequest?
     /// 終わったあとに「もう1本だけ」を押した数
@@ -48,6 +48,15 @@ struct HomeView: View {
                 .ignoresSafeArea()
         }
         .eventSheets(selected: $selectedEvent, throwRequest: $throwRequest)
+        #if DEBUG
+        .onAppear {
+            // 確かめる・デモを撮るとき用: -demoThrow "メモ" で、メモを入れた投げるシートを開く
+            let arguments = ProcessInfo.processInfo.arguments
+            if let index = arguments.firstIndex(of: "-demoThrow"), index + 1 < arguments.count {
+                throwRequest = ThrowRequest(memo: arguments[index + 1], sourceEventID: nil)
+            }
+        }
+        #endif
         .onChange(of: scenePhase) { _, phase in
             // 設定でカレンダーを許可して戻ってきたとき
             if phase == .active { calendar.refreshAccess() }
@@ -56,7 +65,7 @@ struct HomeView: View {
 
     @ViewBuilder
     private var content: some View {
-        let now = Date.now
+        let now = AppClock.now
         let isToday = JapanDate.isSameDay(selectedDay, now)
         let picks = TodayPicker.pick(from: steps, now: now, limit: TodayPicker.dailyCount + extraCount)
         if logs.isEmpty && calendar.access != .granted {
@@ -120,7 +129,10 @@ struct HomeView: View {
                 .padding(.bottom, 140)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                LogsPeekBar(logs: logs.filter { !$0.isFinished }) { showsLogs = true }
+                // 丸太が1本も無い（カレンダーだけ使っている）ときは、空の一覧をのぞかせない
+                if !logs.isEmpty {
+                    LogsPeekBar(logs: logs.filter { !$0.isFinished }) { showsLogs = true }
+                }
             }
 
             Button {

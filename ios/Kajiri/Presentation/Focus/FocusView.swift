@@ -34,7 +34,7 @@ struct FocusView: View {
             Spacer(minLength: 8)
             VStack(spacing: 8) {
                 Button("できた") {
-                    useCase.complete(step, now: .now)
+                    useCase.complete(step, now: AppClock.now)
                     dismiss()
                 }
                 .buttonStyle(PrimaryButtonStyle())
@@ -44,13 +44,13 @@ struct FocusView: View {
         }
         .padding(.horizontal, 18)
         .padding(.bottom, 20)
-        .onAppear { useCase.start(step, now: .now) }
+        .onAppear { useCase.start(step, now: AppClock.now) }
         .sheet(isPresented: $isAskingLater) {
             LaterSheet(step: step) { closesFocus in
                 isAskingLater = false
                 if closesFocus { dismiss() }
             }
-            .presentationDetents([.large])
+            .presentationDetents([.fraction(0.62), .large])
         }
     }
 }

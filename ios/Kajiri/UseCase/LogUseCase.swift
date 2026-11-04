@@ -132,8 +132,8 @@ final class LogUseCase {
                 memo: log.memo,
                 today: now
             )
-            step.workTitle = result.title
-            step.workBody = result.body
+            step.workTitle = PlainText.clean(result.title)
+            step.workBody = PlainText.clean(result.body)
             step.workState = .ready
         } catch {
             step.workBody = error.localizedDescription
