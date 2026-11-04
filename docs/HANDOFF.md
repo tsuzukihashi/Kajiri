@@ -33,6 +33,7 @@
 ## まだのこと
 
 - [ ] Google カレンダーのアプリだけを使い、iPhone の設定に Google アカウントを入れていない人には予定が見えない。その案内をどこに出すか
-- [ ] 実機（App Attest）でつなぐ。Apple Developer に com.tsuzukit.Kajiri を登録（自動署名で出るか確かめる）
+- [ ] TestFlight: Bundle ID com.tsuzukit.Kajiri は登録済み、1.0.0 (1) の IPA は書き出し済み。ASC のアプリ作成に Web のログイン（2FA）が要るので止まっている。ログインのあとは scratchpad の archive/testflight.sh（アプリ作成 → altool で検証 → アップロード → 内部テスト develop に本人を入れる）を流す
+- [ ] 実機（App Attest）で中継サーバにつながるかを、TestFlight 版で確かめる
 - [ ] 共有シート（メール・LINE から投げる）。App Group と、拡張から SwiftData へ書く仕組みが要る
 - [ ] 公開リポジトリ（GitHub）と README、デモ動画（3分以内）、提出
