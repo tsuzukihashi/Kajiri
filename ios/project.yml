@@ -49,6 +49,8 @@ targets:
       path: Kajiri/Info.plist
       properties:
         CFBundleDisplayName: Kajiri
+        # 見た目は明るい地だけで作っている（ダークモードで文字が白くなって読めなくならないように）
+        UIUserInterfaceStyle: Light
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
@@ -102,6 +104,8 @@ targets:
       path: KajiriShare/Info.plist
       properties:
         CFBundleDisplayName: Kajiri
+        # 見た目は明るい地だけで作っている（ダークモードで文字が白くなって読めなくならないように）
+        UIUserInterfaceStyle: Light
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
