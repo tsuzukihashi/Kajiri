@@ -11,6 +11,17 @@ export type PrepInput = { today: string; events: PrepEvent[] };
 
 const MAX_EVENTS = 60;
 
+export type WeeklyInput = {
+  week: string;
+  days: number[];
+  done: { title: string; log: string }[];
+  postponed: { title: string; count: number }[];
+  kajiriDone: number;
+  resplit: number;
+  overrun: number | null;
+  thrown: number;
+};
+
 function bad(message: string): never {
   throw new AppError("invalid-argument", "bad_request", message);
 }
@@ -79,5 +90,34 @@ export function parsePrepInput(body: unknown): PrepInput {
         location: typeof e.location === "string" ? e.location.slice(0, MAX_TITLE) : "",
       };
     }),
+  };
+}
+
+function count(v: unknown): number {
+  return typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(999, Math.floor(v))) : 0;
+}
+
+export function parseWeeklyInput(body: unknown): WeeklyInput {
+  if (!isRecord(body)) bad("JSON のオブジェクトを送ってください");
+  const days = Array.isArray(body.days) ? body.days.slice(0, 7).map(count) : [];
+  if (days.length !== 7) bad("days は7日分を送ってください");
+  const done = Array.isArray(body.done) ? body.done.slice(0, 60) : [];
+  const postponed = Array.isArray(body.postponed) ? body.postponed.slice(0, 20) : [];
+  const overrun = body.overrun;
+  return {
+    week: text(body.week, "week", 40),
+    days,
+    done: done.map((d) => {
+      if (!isRecord(d)) bad("done の中身がオブジェクトではありません");
+      return { title: text(d.title, "title", MAX_TITLE), log: typeof d.log === "string" ? d.log.slice(0, MAX_TITLE) : "" };
+    }),
+    postponed: postponed.map((p) => {
+      if (!isRecord(p)) bad("postponed の中身がオブジェクトではありません");
+      return { title: text(p.title, "title", MAX_TITLE), count: count(p.count) };
+    }),
+    kajiriDone: count(body.kajiri_done),
+    resplit: count(body.resplit),
+    overrun: typeof overrun === "number" && overrun > 0 && overrun < 10 ? overrun : null,
+    thrown: count(body.thrown),
   };
 }

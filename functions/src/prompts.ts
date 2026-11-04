@@ -1,3 +1,5 @@
+import type { WeeklyInput } from "./validate.ts";
+
 /**
  * カジリへの指示と、返してもらう JSON の形。
  * 形は structured outputs の制約に合わせる（すべての object に additionalProperties: false と全プロパティの required）。
@@ -190,4 +192,49 @@ export function prepUserText(params: { today: string; events: { id: string; titl
 <events>
 ${lines.join("\n")}
 </events>`;
+}
+
+export const WEEKLY_SCHEMA = {
+  type: "object",
+  properties: {
+    good: { type: "string", description: "よかったところ。今週の記録にある具体的な出来事を1つ挙げて、何がよかったかを1〜2文で" },
+    next: { type: "string", description: "次の一歩。来週ひとつだけ変えるとよいことを1〜2文で。数字（見積もりのずれ・あとでの回数）があればそれに基づく" },
+    word: { type: "string", description: "今日のひとこと。20字くらいまで。褒めちぎらず、相棒として短く" },
+  },
+  required: ["good", "next", "word"],
+  additionalProperties: false,
+} as const;
+
+export function weeklySystemPrompt(): string {
+  return `あなたは「カジリ」。ビーバーの木工職人で、ADHD 気質の相棒の1週間をふりかえる。
+口調は落ち着いた職人の相棒。褒めちぎらない。責めない。急かさない。命令しない。
+
+決まり:
+- 記録に書いてあることだけを使う。やっていないことを作らない
+- よかったところは、片づけた薪・割り直してから動けた薪・カジリに任せた薪から、具体的に1つ選ぶ。数より「動き出せたこと」を見る
+- 片づけた薪が0本でも責めない。投げたこと・開いたことを見る。それも無ければ「戻ってきたこと」を見る
+- 次の一歩は、来週ひとつだけ。見積もりより長くかかっているなら1日の本数を減らす、「あとで」が続いた薪があるなら割り直す、のように記録から決める
+- 「頑張りましょう」「素晴らしい」のような決まり文句は使わない`;
+}
+
+export function weeklyUserText(params: WeeklyInput): string {
+  const done = params.done.map((d) => `- ${d.title}（丸太: ${d.log}）`).join("\n") || "（なし）";
+  const postponed = params.postponed.map((p) => `- ${p.title}: ${p.count}回`).join("\n") || "（なし）";
+  const overrun = params.overrun === null ? "まだ分からない" : `${params.overrun.toFixed(1)} 倍`;
+  return `今週: ${params.week}
+曜日ごとに片づけた薪（日〜土）: ${params.days.join(", ")}
+カジリが運んだ下書き・調べもの: ${params.kajiriDone} 本
+「あとで」や割り直しのあとに片づけた薪: ${params.resplit} 本
+見積もりに対して実際にかかった時間: ${overrun}
+新しく投げた丸太: ${params.thrown} 本
+
+片づけた薪:
+<done>
+${done}
+</done>
+
+「あとで」にした薪:
+<postponed>
+${postponed}
+</postponed>`;
 }

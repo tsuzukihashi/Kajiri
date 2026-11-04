@@ -8,6 +8,7 @@ struct HomeDoneView: View {
     /// 今日のこのあとの予定（終日は除く）
     let upcoming: [CalendarEvent]
     let onEventTap: (CalendarEvent) -> Void
+    let onWeekly: () -> Void
     let onMore: () -> Void
     let onFinish: () -> Void
 
@@ -17,7 +18,11 @@ struct HomeDoneView: View {
                 KajiriBubble(text: String(localized: "今日の\(doneToday)本、おわり。ダムが伸びたぞ。"))
                     .padding(.top, 24)
                 KajiriImage(pose: .dam, size: 240)
-                DamCountCard(damCount: damCount, doneToday: doneToday)
+                Button(action: onWeekly) {
+                    DamCountCard(damCount: damCount, doneToday: doneToday)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("週のふりかえりを開く"))
                 if !upcoming.isEmpty {
                     upcomingList
                 }
@@ -88,7 +93,9 @@ private struct DamCountCard: View {
                 .padding(.horizontal, 9)
                 .padding(.vertical, 3)
                 .background(Theme.amber, in: .capsule)
+            Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
         }
+        .foregroundStyle(Theme.ink)
         .padding(16)
         .background(Theme.card, in: .rect(cornerRadius: 20))
         .padding(.horizontal, 18)
@@ -102,7 +109,7 @@ private struct DamCountCard: View {
         HomeDoneView(
             doneToday: 3, damCount: 15,
             upcoming: Array(CalendarEvent.previewWeek(now: .now).prefix(2)),
-            onEventTap: { _ in }, onMore: {}, onFinish: {}
+            onEventTap: { _ in }, onWeekly: {}, onMore: {}, onFinish: {}
         )
         .background(Theme.ground)
     }
@@ -110,7 +117,7 @@ private struct DamCountCard: View {
 
 #Preview("予定なし") {
     NavigationStack {
-        HomeDoneView(doneToday: 3, damCount: 15, upcoming: [], onEventTap: { _ in }, onMore: {}, onFinish: {})
+        HomeDoneView(doneToday: 3, damCount: 15, upcoming: [], onEventTap: { _ in }, onWeekly: {}, onMore: {}, onFinish: {})
             .background(Theme.ground)
     }
 }

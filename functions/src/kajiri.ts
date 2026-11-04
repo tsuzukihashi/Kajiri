@@ -4,16 +4,19 @@ import {
   DECOMPOSE_SCHEMA,
   PREP_SCHEMA,
   RESPLIT_SCHEMA,
+  WEEKLY_SCHEMA,
   decomposeSystemPrompt,
   decomposeUserText,
   prepSystemPrompt,
   prepUserText,
   resplitSystemPrompt,
   resplitUserText,
+  weeklySystemPrompt,
+  weeklyUserText,
   workSystemPrompt,
   workUserText,
 } from "./prompts.ts";
-import { parseDecomposeInput, parsePrepInput, parseResplitInput, parseWorkInput } from "./validate.ts";
+import { parseDecomposeInput, parsePrepInput, parseResplitInput, parseWeeklyInput, parseWorkInput } from "./validate.ts";
 
 /** 雑なメモを、1本の丸太と薪に分ける */
 export async function decompose(data: unknown, client: Anthropic): Promise<unknown> {
@@ -70,4 +73,17 @@ export async function prep(data: unknown, client: Anthropic): Promise<{ picks: {
   // 届いていない id を返してきたら捨てる（アプリ側で予定と結び付けられない）
   const ids = new Set(input.events.map((e) => e.id));
   return { picks: result.picks.filter((p) => ids.has(p.event_id)).slice(0, 5), comment: result.comment };
+}
+
+/** 1週間の記録から、よかったところ・次の一歩・今日のひとことを書く */
+export async function weekly(data: unknown, client: Anthropic): Promise<unknown> {
+  const input = parseWeeklyInput(data);
+  return callJSON({
+    client,
+    system: weeklySystemPrompt(),
+    user: weeklyUserText(input),
+    schema: WEEKLY_SCHEMA,
+    effort: "low",
+    maxTokens: 4_000,
+  });
 }

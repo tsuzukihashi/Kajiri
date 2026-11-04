@@ -8,6 +8,7 @@ protocol KajiriAPIProtocol: Sendable {
     func resplit(logTitle: String, step: String, postponed: Int, today: Date) async throws -> ResplitResult
     func work(logTitle: String, step: String, work: String, memo: String, today: Date) async throws -> WorkResult
     func prep(events: [PrepEventDTO], today: Date) async throws -> PrepResult
+    func weekly(_ request: WeeklyRequestDTO) async throws -> WeeklyResult
 }
 
 enum KajiriAPIError: LocalizedError, Sendable {
@@ -80,6 +81,10 @@ struct KajiriAPI: KajiriAPIProtocol {
         return try await call("kajiriPrep", Body(today: JapanDate.dayString(today), events: events), timeout: 120)
     }
 
+    func weekly(_ request: WeeklyRequestDTO) async throws -> WeeklyResult {
+        try await call("kajiriWeekly", request, timeout: 120)
+    }
+
     private func call<Request: Encodable & Sendable, Response: Decodable & Sendable>(
         _ name: String,
         _ request: Request,
@@ -139,6 +144,18 @@ struct MockKajiriAPI: KajiriAPIProtocol {
             PrepPick(eventID: $0.id, reason: "当日までに手を動かすことがありそうだ。", memo: "\($0.when) \($0.title)。準備")
         }
         return PrepResult(picks: picks, comment: picks.isEmpty ? "いまのところ、準備が要りそうな予定はないな。" : "\(picks.count)つ、先にかじっておくと楽なのがある。")
+    }
+}
+
+extension MockKajiriAPI {
+    func weekly(_ request: WeeklyRequestDTO) async throws -> WeeklyResult {
+        try await Task.sleep(for: delay)
+        if fails { throw KajiriAPIError.server(message: "混み合っています。") }
+        return WeeklyResult(
+            good: "3回「あとで」にした年末調整を、小さく割り直したら水曜に動き出せた。",
+            next: "見積もりより3割長くかかってる。来週は1日2本にしておく。",
+            word: "戻ってきたのが、いちばんえらい。"
+        )
     }
 }
 #endif

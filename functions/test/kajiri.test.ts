@@ -2,9 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MODEL, makeClient } from "../src/claude.ts";
 import { AppError } from "../src/errors.ts";
-import { decompose, prep, resplit, work } from "../src/kajiri.ts";
-import { DECOMPOSE_SCHEMA, PREP_SCHEMA, RESPLIT_SCHEMA } from "../src/prompts.ts";
-import { parseDecomposeInput, parsePrepInput, parseResplitInput } from "../src/validate.ts";
+import { decompose, prep, resplit, weekly, work } from "../src/kajiri.ts";
+import { DECOMPOSE_SCHEMA, PREP_SCHEMA, RESPLIT_SCHEMA, WEEKLY_SCHEMA } from "../src/prompts.ts";
+import { parseDecomposeInput, parsePrepInput, parseResplitInput, parseWeeklyInput } from "../src/validate.ts";
 
 /** Claude API の代わりに決まった返事を返す fetch。送った中身も控える */
 function fakeFetch(response: { status: number; body: unknown }, seen: { body?: any; headers?: Headers }) {
@@ -157,4 +157,35 @@ test("準備の形: すべての object が additionalProperties:false で、全
   assert.equal(PREP_SCHEMA.additionalProperties, false);
   assert.equal(item.additionalProperties, false);
   assert.deepEqual([...item.required].sort(), Object.keys(item.properties).sort());
+});
+
+test("ふりかえり: 1週間の記録を送り、3つの欄を読む", async () => {
+  const seen: { body?: any; headers?: Headers } = {};
+  const reply = { good: "割り直したら動けた。", next: "来週は1日2本。", word: "戻ってきたのがえらい。" };
+  const client = makeClient("test-key", fakeFetch({ status: 200, body: message(JSON.stringify(reply), "end_turn") }, seen));
+  const result = await weekly(
+    {
+      week: "11/1〜11/7",
+      days: [0, 1, 2, 0, 3, 0, 1],
+      done: [{ title: "封筒を机に出す", log: "年末調整" }],
+      postponed: [{ title: "証明書を探す", count: 3 }],
+      kajiri_done: 2,
+      resplit: 1,
+      overrun: 1.3,
+      thrown: 2,
+    },
+    client,
+  );
+  assert.deepEqual(result, reply);
+  assert.match(seen.body.messages[0].content, /証明書を探す: 3回/);
+  assert.match(seen.body.messages[0].content, /1\.3 倍/);
+});
+
+test("ふりかえり: 曜日が7日分でなければ断る", () => {
+  assert.throws(() => parseWeeklyInput({ week: "x", days: [1, 2] }), AppError);
+});
+
+test("ふりかえりの形: additionalProperties:false で、全部が required", () => {
+  assert.equal(WEEKLY_SCHEMA.additionalProperties, false);
+  assert.deepEqual([...WEEKLY_SCHEMA.required].sort(), Object.keys(WEEKLY_SCHEMA.properties).sort());
 });

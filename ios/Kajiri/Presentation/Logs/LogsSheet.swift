@@ -7,6 +7,7 @@ struct LogsSheet: View {
     @Environment(LogUseCase.self) private var useCase
     @Query(sort: \Log.createdAt, order: .reverse) private var logs: [Log]
     @State private var editor: DeadlineEditor?
+    let onOpenWeekly: () -> Void
 
     var body: some View {
         ScrollView {
@@ -19,6 +20,21 @@ struct LogsSheet: View {
                         .padding(.horizontal, 8)
                         .background(Theme.chip, in: .capsule)
                 }
+                Button(action: onOpenWeekly) {
+                    HStack(spacing: 10) {
+                        KajiriImage(pose: .dam, size: 40)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("週のふりかえり").font(.system(size: 15, weight: .heavy))
+                            Text("今週のダムと、カジリのひとこと").font(.system(size: 12)).foregroundStyle(Theme.sub)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
+                    }
+                    .foregroundStyle(Theme.ink)
+                    .padding(12)
+                    .background(Theme.amberSoft, in: .rect(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
                 if logs.isEmpty {
                     ContentUnavailableView(
                         "まだ丸太がありません",
@@ -145,7 +161,7 @@ private struct ProgressPips: View {
 #if DEBUG
 #Preview("丸太がある") {
     let (useCase, container) = LogUseCase.preview(filled: true)
-    LogsSheet()
+    LogsSheet {}
         .environment(useCase)
         .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)
@@ -153,7 +169,7 @@ private struct ProgressPips: View {
 
 #Preview("空") {
     let (useCase, container) = LogUseCase.preview(filled: false)
-    LogsSheet()
+    LogsSheet {}
         .environment(useCase)
         .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)

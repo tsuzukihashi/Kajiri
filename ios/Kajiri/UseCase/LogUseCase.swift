@@ -148,6 +148,39 @@ final class LogUseCase {
         try? context.save()
     }
 
+    // MARK: 週のふりかえり
+
+    func weekSummary(weekStart: Date) -> WeekSummary {
+        let logs = (try? context.fetch(FetchDescriptor<Log>())) ?? []
+        return WeekSummary.make(steps: allSteps(), logs: logs, weekStart: weekStart)
+    }
+
+    /// 薪の名前と数だけを送って、カジリに3つの欄を書いてもらう。書いてもらったものは端末に残す
+    func review(_ summary: WeekSummary) async throws -> WeeklyResult {
+        let request = WeeklyRequestDTO(
+            week: summary.rangeText,
+            days: summary.days,
+            done: summary.done.prefix(60).map { .init(title: $0.title, log: $0.log?.title ?? "") },
+            postponed: summary.postponed.prefix(20).map { .init(title: $0.title, count: $0.postponeCount) },
+            kajiriDone: summary.kajiriDone,
+            resplit: summary.comeback,
+            overrun: summary.overrun,
+            thrown: summary.thrown
+        )
+        let result = try await api.weekly(request)
+        if let data = try? JSONEncoder().encode(result) {
+            UserDefaults.standard.set(data, forKey: Self.reviewKey(summary))
+        }
+        return result
+    }
+
+    func savedReview(_ summary: WeekSummary) -> WeeklyResult? {
+        guard let data = UserDefaults.standard.data(forKey: Self.reviewKey(summary)) else { return nil }
+        return try? JSONDecoder().decode(WeeklyResult.self, from: data)
+    }
+
+    private static func reviewKey(_ summary: WeekSummary) -> String { "weeklyReview-\(summary.key)" }
+
     // MARK: 読む
 
     func allSteps() -> [Step] {

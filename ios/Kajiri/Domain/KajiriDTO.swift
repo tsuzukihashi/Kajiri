@@ -103,3 +103,37 @@ struct PrepResult: Decodable, Sendable, Equatable {
     let picks: [PrepPick]
     let comment: String
 }
+
+/// 1週間のふりかえり（カジリが書く3つの欄）
+struct WeeklyResult: Codable, Sendable, Equatable {
+    let good: String
+    let next: String
+    let word: String
+}
+
+/// ふりかえりのために送る1週間の記録（薪の名前と数だけ）
+struct WeeklyRequestDTO: Encodable, Sendable {
+    struct Done: Encodable, Sendable {
+        let title: String
+        let log: String
+    }
+
+    struct Postponed: Encodable, Sendable {
+        let title: String
+        let count: Int
+    }
+
+    let week: String
+    let days: [Int]
+    let done: [Done]
+    let postponed: [Postponed]
+    let kajiriDone: Int
+    let resplit: Int
+    let overrun: Double?
+    let thrown: Int
+
+    enum CodingKeys: String, CodingKey {
+        case week, days, done, postponed, resplit, overrun, thrown
+        case kajiriDone = "kajiri_done"
+    }
+}

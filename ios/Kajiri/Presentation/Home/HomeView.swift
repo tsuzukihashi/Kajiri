@@ -14,6 +14,9 @@ struct HomeView: View {
     @State private var path: [Route] = []
     @State private var throwRequest: ThrowRequest?
     @State private var showsLogs = false
+    @State private var showsWeekly = false
+    /// 丸太の一覧から「週のふりかえり」を押したとき、一覧が閉じてから開く
+    @State private var opensWeeklyAfterLogs = false
     @State private var selectedDay = AppClock.now
     @State private var selectedEvent: CalendarEvent?
     @State private var editor: EventEditorRequest?
@@ -38,9 +41,21 @@ struct HomeView: View {
         .sheet(item: $throwRequest) { request in
             ThrowSheet(request: request)
         }
-        .sheet(isPresented: $showsLogs) {
-            LogsSheet()
-                .presentationDetents([.medium, .large])
+        .sheet(isPresented: $showsLogs, onDismiss: {
+            if opensWeeklyAfterLogs {
+                opensWeeklyAfterLogs = false
+                showsWeekly = true
+            }
+        }) {
+            LogsSheet {
+                opensWeeklyAfterLogs = true
+                showsLogs = false
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showsWeekly) {
+            WeeklySheet()
                 .presentationDragIndicator(.visible)
         }
         .sheet(item: $editor) { request in
@@ -48,6 +63,8 @@ struct HomeView: View {
                 .ignoresSafeArea()
         }
         .eventSheets(selected: $selectedEvent, throwRequest: $throwRequest)
+        // 薪が1本片づいたら、手ごたえを返す（戻したときは鳴らさない）
+        .sensoryFeedback(trigger: steps.filter(\.isDone).count) { old, new in new > old ? .success : nil }
         #if DEBUG
         .onAppear {
             // 確かめる・デモを撮るとき用: -demoThrow "メモ" で、メモを入れた投げるシートを開く
@@ -80,6 +97,7 @@ struct HomeView: View {
                 damCount: steps.filter(\.isDone).count,
                 upcoming: calendar.events(on: now).filter { !$0.isAllDay && $0.end > now },
                 onEventTap: { selectedEvent = $0 },
+                onWeekly: { showsWeekly = true },
                 onMore: {
                     finishedDay = ""
                     extraCount += 1
