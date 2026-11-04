@@ -23,14 +23,14 @@ struct SplittingCard: View {
 struct ShareHintRow: View {
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "square.and.arrow.down")
+            Image(systemName: "square.and.arrow.up")
                 .font(.system(size: 18))
                 .frame(width: 44, height: 44)
                 .background(Theme.chip, in: .rect(cornerRadius: 12))
             VStack(alignment: .leading, spacing: 2) {
-                Text("頼まれたこと・締め切り・思い出したこと")
+                Text("メール・LINE・Safari からも投げられる")
                     .font(.system(size: 15, weight: .heavy))
-                Text("全部まとめて書いても、いちばん大きい丸太から分けます")
+                Text("共有から「Kajiri」を選ぶと、ここに入ります。まとめて書いても、いちばん大きい丸太から分けます")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.sub)
             }

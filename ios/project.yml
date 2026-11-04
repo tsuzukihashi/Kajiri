@@ -37,6 +37,8 @@ targets:
     sources:
       - path: Kajiri
     dependencies:
+      - target: KajiriShare
+        embed: true
       - package: Firebase
         product: FirebaseCore
       - package: Firebase
@@ -59,6 +61,7 @@ targets:
       path: Kajiri/Kajiri.entitlements
       properties:
         com.apple.developer.devicecheck.appattest-environment: $(APP_ATTEST_ENVIRONMENT)
+        com.apple.security.application-groups: [group.com.tsuzukit.Kajiri]
     settings:
       base:
         PRODUCT_NAME: Kajiri
@@ -87,3 +90,34 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/Kajiri.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Kajiri
         BUNDLE_LOADER: $(TEST_HOST)
+
+  # 共有シートの「Kajiri」。共有された文章・URL を App Group に置き、アプリを開いたときに投げるシートへ入れる
+  KajiriShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: KajiriShare
+      - path: Kajiri/Domain/SharedInbox.swift
+    info:
+      path: KajiriShare/Info.plist
+      properties:
+        CFBundleDisplayName: Kajiri
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+    entitlements:
+      path: KajiriShare/KajiriShare.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.tsuzukit.Kajiri]
+    settings:
+      base:
+        PRODUCT_NAME: KajiriShare
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuzukit.Kajiri.Share
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES

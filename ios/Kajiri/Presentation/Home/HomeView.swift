@@ -76,9 +76,15 @@ struct HomeView: View {
             }
         }
         #endif
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase, initial: true) { _, phase in
             // 設定でカレンダーを許可して戻ってきたとき
-            if phase == .active { calendar.refreshAccess() }
+            if phase == .active {
+                calendar.refreshAccess()
+                // 共有シートから投げられたメモがあれば、投げるシートに入れて開く
+                if throwRequest == nil, let memo = SharedInbox.pop() {
+                    IntentInbox.shared.pendingThrow = memo
+                }
+            }
             // 閉じるときに、次の朝・締め切りの前の日・月曜の通知を入れ直す
             if phase == .background { Task { await useCase.rescheduleNotifications(now: AppClock.now) } }
         }

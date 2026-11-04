@@ -32,6 +32,7 @@ Kajiri は、ADHD 気質の人のためのタスク管理とカレンダーの�
 | **週のふりかえり** | 片づけた薪の数と曜日ごとの棒、カジリが書く【よかったところ】【次の一歩】【今日のひとこと】 |
 | **通知** | 朝の1本目、締め切りの前の日の夜、月曜の朝のふりかえり。何かあるときだけ、次の1回ずつ入れます |
 | **Siri・アクションボタン** | 「Kajiriに投げる」で、メモを入れた投げるシートを開きます |
+| **共有シート** | メール・LINE・Safari の共有から「Kajiri」を選ぶと、次に開いたときの投げるシートに入ります（App Group で受け渡し） |
 
 ## Claude の使いどころ
 
@@ -59,6 +60,7 @@ Kajiri は、ADHD 気質の人のためのタスク管理とカレンダーの�
 
 ```
 ios/        SwiftUI + SwiftData + EventKit（XcodeGen の project.yml から生成）。iOS 26、Swift 6
+            KajiriShare/ は共有シートの拡張
 functions/  Firebase Functions（TypeScript）。公式 SDK @anthropic-ai/sdk で Claude API を呼ぶ
 scripts/    秘密が入っていないかを調べるフック
 ```
