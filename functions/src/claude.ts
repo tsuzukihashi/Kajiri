@@ -1,8 +1,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AppError } from "./errors.ts";
 
-/** カジリの頭。分解の質がいちばん大事なので Opus にする */
+/** カジリの頭。下書き・割り直し・準備探し・ふりかえりは、まだ評価していないので Opus のまま */
 export const MODEL = "claude-opus-5-5";
+
+/**
+ * 分解だけ Sonnet。16 ケース × 2 回の評価で、Opus との中身の差は誤差の範囲（-0.09 点、95%CI -0.24〜+0.06）、
+ * 代金は約 1/3、応答は 15.9 秒 → 6.8 秒だった（evals/decompose/out/summary.md）
+ */
+export const DECOMPOSE_MODEL = "claude-sonnet-5-5";
 
 /** 安全のための判定で断られたら、サーバー側で別のモデルにやり直してもらう */
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
@@ -20,6 +26,7 @@ export function makeClient(apiKey: string, fetchImpl: typeof fetch | null): Anth
  */
 export async function callJSON<T>(params: {
   client: Anthropic;
+  model: string;
   system: string;
   user: string;
   schema: Record<string, unknown>;
@@ -28,7 +35,7 @@ export async function callJSON<T>(params: {
 }): Promise<T> {
   const response = await send(() =>
     params.client.beta.messages.create({
-      model: MODEL,
+      model: params.model,
       max_tokens: params.maxTokens,
       betas: [FALLBACK_BETA],
       fallbacks: "default",

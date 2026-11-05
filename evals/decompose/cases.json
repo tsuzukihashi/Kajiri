@@ -1,0 +1,23 @@
+{
+  "today": "2026-11-05",
+  "weekday": "木",
+  "note": "分解（kajiriDecompose）の評価用のメモ。本番と同じ形で送る。deadline は原文から決まる日付。null は原文に無いので作ってはいけない。any はどちらでもよい",
+  "cases": [
+    { "id": "tax-yearend", "memo": "年末調整の書類、放置してる。締め切りは11月20日", "deadline": "2026-11-20", "tags": ["期限あり", "事務"] },
+    { "id": "moving", "memo": "引っ越しが12月20日。粗大ゴミどうしよう", "deadline": "2026-12-20", "tags": ["期限あり", "生活"] },
+    { "id": "tax-return", "memo": "確定申告、去年ギリギリで地獄だった。今年は早めにやりたい", "deadline": "any", "tags": ["期限なし", "事務"] },
+    { "id": "presentation", "memo": "来週の火曜にプレゼン。スライドまだ白紙", "deadline": "2026-11-10", "tags": ["相対の日付", "仕事"] },
+    { "id": "messy-room", "memo": "部屋が散らかりすぎて何から手をつけていいか分からない", "deadline": null, "tags": ["漠然", "生活"] },
+    { "id": "mom-birthday", "memo": "母の誕生日が28日。プレゼント何も考えてない", "deadline": "2026-11-28", "tags": ["日だけ", "人"] },
+    { "id": "late-reply", "memo": "取引先に送る見積もりの返事、1週間放置してしまった。気まずい", "deadline": null, "tags": ["気持ち", "仕事", "下書き"] },
+    { "id": "passport", "memo": "パスポートの期限が切れてる。来年3月に海外旅行", "deadline": "any", "tags": ["あいまいな期限", "手続き"] },
+    { "id": "dentist", "memo": "歯医者に行かなきゃ。もう半年以上行ってない", "deadline": null, "tags": ["小さい", "健康"] },
+    { "id": "expenses", "memo": "会社の経費精算、3ヶ月分たまってる。月末締め", "deadline": "2026-11-30", "tags": ["月末", "仕事"] },
+    { "id": "wedding-speech", "memo": "友達の結婚式のスピーチを頼まれた。12月6日", "deadline": "2026-12-06", "tags": ["期限あり", "下書き"] },
+    { "id": "job-change", "memo": "転職したいけど何から始めればいいか分からない", "deadline": null, "tags": ["漠然", "大きい"] },
+    { "id": "lease-renewal", "memo": "マンションの更新の書類が届いた。更新料も払わないと。期限は今月末", "deadline": "2026-11-30", "tags": ["今月末", "手続き"] },
+    { "id": "car-inspection", "memo": "車検いつだっけ。たぶん来月", "deadline": null, "tags": ["不確か", "手続き"] },
+    { "id": "mixed", "memo": "洗濯機が壊れた。あと保育園の書類と、PTAの係決めのアンケートが今日まで", "deadline": "any", "multi": true, "tags": ["複数", "生活"] },
+    { "id": "electricity", "memo": "電気代の払込用紙、コンビニで払う。期限あさって", "deadline": "2026-11-07", "tags": ["小さい", "相対の日付"] }
+  ]
+}

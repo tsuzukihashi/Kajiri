@@ -39,7 +39,7 @@ scripts/    秘密チェック
 - Firebase プロジェクトは `otayori-tsuzukit` を共用している（Blaze・App Check・キー・組織ポリシーの対応が済んでいるため）。関数は codebase `kajiri` で分けてあり、`npm run deploy` は Kajiri の関数だけを出す
 - Claude の呼び出しはすべて `functions/` を通す。アプリから Anthropic API を直接呼ばない
 - Functions は `onCall` で `enforceAppCheck: true` を外さない
-- モデルは `claude-opus-5-5`。`fallbacks: "default"`（安全の判定で断られたら別のモデルでやり直す）を付けている
+- モデルは、分解が `claude-sonnet-5-5`、それ以外が `claude-opus-5-5`（`functions/src/claude.ts`）。モデルを変えるときは `evals/` で精度・代金・速さを測ってから決める。`fallbacks: "default"`（安全の判定で断られたら別のモデルでやり直す）を付けている
 - iOS 26、Swift 6（strict concurrency）。MVVM + UseCase。SwiftData の都合で UseCase は MainActor
 - 画面の文字は日本語をキーにして String Catalog で訳す
 

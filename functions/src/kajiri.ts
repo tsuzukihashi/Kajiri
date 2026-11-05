@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { callJSON, callWithSearch } from "./claude.ts";
+import { DECOMPOSE_MODEL, MODEL, callJSON, callWithSearch } from "./claude.ts";
 import {
   DECOMPOSE_SCHEMA,
   PREP_SCHEMA,
@@ -23,6 +23,7 @@ export async function decompose(data: unknown, client: Anthropic): Promise<unkno
   const input = parseDecomposeInput(data);
   return callJSON({
     client,
+    model: DECOMPOSE_MODEL,
     system: decomposeSystemPrompt(),
     user: decomposeUserText(input),
     schema: DECOMPOSE_SCHEMA,
@@ -36,6 +37,7 @@ export async function resplit(data: unknown, client: Anthropic): Promise<unknown
   const input = parseResplitInput(data);
   return callJSON({
     client,
+    model: MODEL,
     system: resplitSystemPrompt(),
     user: resplitUserText(input),
     schema: RESPLIT_SCHEMA,
@@ -64,6 +66,7 @@ export async function prep(data: unknown, client: Anthropic): Promise<{ picks: {
   const input = parsePrepInput(data);
   const result = await callJSON<{ picks: { event_id: string; reason: string; memo: string }[]; comment: string }>({
     client,
+    model: MODEL,
     system: prepSystemPrompt(),
     user: prepUserText(input),
     schema: PREP_SCHEMA,
@@ -80,6 +83,7 @@ export async function weekly(data: unknown, client: Anthropic): Promise<unknown>
   const input = parseWeeklyInput(data);
   return callJSON({
     client,
+    model: MODEL,
     system: weeklySystemPrompt(),
     user: weeklyUserText(input),
     schema: WEEKLY_SCHEMA,

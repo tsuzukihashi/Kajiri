@@ -51,12 +51,12 @@ const sampleDecompose = {
   comment: "まずはここからな。",
 };
 
-test("分解: Opus に、決まった形と代わりのモデルの指定を付けて送り、JSON を読む", async () => {
+test("分解: Sonnet に、決まった形と代わりのモデルの指定を付けて送り、JSON を読む", async () => {
   const seen: { body?: any; headers?: Headers } = {};
   const client = makeClient("test-key", fakeFetch({ status: 200, body: message(JSON.stringify(sampleDecompose), "end_turn") }, seen));
   const result = await decompose({ memo: "確定申告", today: "2026-11-04", weekday: "水", overrun: 1.3 }, client);
   assert.deepEqual(result, sampleDecompose);
-  assert.equal(seen.body.model, "claude-opus-5-5");
+  assert.equal(seen.body.model, "claude-sonnet-5-5");
   assert.equal(seen.body.fallbacks, "default");
   assert.equal(seen.body.output_config.format.type, "json_schema");
   assert.equal(seen.body.output_config.effort, "medium");
