@@ -42,3 +42,10 @@ scripts/    秘密チェック
 - モデルは `claude-opus-5-5`。`fallbacks: "default"`（安全の判定で断られたら別のモデルでやり直す）を付けている
 - iOS 26、Swift 6（strict concurrency）。MVVM + UseCase。SwiftData の都合で UseCase は MainActor
 - 画面の文字は日本語をキーにして String Catalog で訳す
+
+## 🚨 課金と費用の上限が決まるまで、App Store の審査に出さない【2026-11-05】
+
+「問題なかったら公開して」を App Store 提出だと決めつけ、課金プランも Claude の呼び出しの上限も無いまま 1.0.0 を審査に出した（承認後に自動公開の設定）。
+- 審査に出す前に、課金プラン（または無料で出す判断）と、Claude API の費用の上限（回数制限など）を本人と決める
+- 「公開」の意味が取れないときは、どれのことか1問だけ聞く
+- 審査に出すときは、承認後の公開を MANUAL にする
