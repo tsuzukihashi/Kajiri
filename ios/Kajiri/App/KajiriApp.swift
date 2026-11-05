@@ -16,6 +16,17 @@ struct KajiriApp: App {
             // 保存先が開けないときは、落とさずにメモリの中だけで動かす
             container = try! ModelContainer(for: Log.self, Step.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         }
+        #if DEBUG
+        // App Store のスクリーンショット用: メモリの中の見本データと、決まった答えを返す中継サーバ
+        if StoreShots.isOn {
+            let shots = try! ModelContainer(for: Log.self, Step.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+            StoreShots.seed(shots.mainContext, now: AppClock.now)
+            self.container = shots
+            _useCase = State(initialValue: LogUseCase(context: shots.mainContext, api: StoreShotAPI(), notifications: MockNotificationScheduler()))
+            _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: StoreShotAPI()))
+            return
+        }
+        #endif
         self.container = container
         _useCase = State(initialValue: LogUseCase(context: container.mainContext, api: KajiriAPI(), notifications: NotificationScheduler()))
         _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: KajiriAPI()))

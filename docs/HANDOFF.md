@@ -30,6 +30,7 @@
 - 共有シート（KajiriShare）: 共有された文章・URL を App Group（group.com.tsuzukit.Kajiri）に置き、アプリを開いたときに投げるシートへ入れる。Safari から投げてシミュレータで確かめた
 - 週のふりかえり（kajiriWeekly）、通知（朝の1本目・締め切りの前の日・月曜）、Siri・アクションボタン（App Intents）、アプリアイコン、README、単体テスト 20 件
 - tsuzukit.com/kajiri/ に LP・プライバシーポリシー・利用規約を置いた（tsuzukit.com のリポジトリ）。アプリの丸太の一覧と月の表示のいちばん下からリンク
+- ストアのスクショ: `ios/KajiriUITests/ScreenshotTests.swift` が `-storeShots`（メモリの中の見本データと決まった答えの中継サーバ。`App/StoreShots.swift`）で6枚撮る。fastlane snapshot は 2.240.0 でシミュレータ一覧を読むところで落ちるので、`xcodebuild test -only-testing:KajiriUITests/ScreenshotTests` を直接当て、`~/Library/Caches/tools.fastlane/screenshots` から `fastlane/screenshots/ja` へ写して `fastlane frameit silver`（LANG=en_US.UTF-8）。撮る前に `simctl status_bar override --time 10:15`（アプリの時計と合わせる）
 - DEBUG だけの起動引数: `-seedDemo`（見本の予定）・`-demoHour 10`（時計をずらす）・`-demoThrow "メモ"`（デモ動画を撮るときに使う）
 
 ## まだのこと
@@ -39,4 +40,6 @@
 - [ ] 実機（App Attest）で中継サーバにつながるかを、TestFlight 版で確かめる
 - [ ] デモ動画: 素材は docs/demo/（.gitignore 済み）。kajiri_demo_cut.mp4 は 2分20秒（投げる → 分ける → 通知の許可 → カジリが並行で進める → 1本片づける → 下書き → 月の表示で準備を探す。待ち時間は速めてある）。字幕を入れて最後に名前の札（4秒）を足したものが kajiri_demo.mp4（2分25秒）。ナレーション入りが kajiri_demo_voice.mp4（VOICEVOX 雀松朱司。声の高さと息の少なさで選んだ。アクセントは OJAD に合わせ、ダウンステップを入れた。終わりの札にクレジットあり）。こちらは音を聴けていないので、使うかどうかは本人が聴いて決める。音楽はまだ
 - [x] 公開リポジトリ: https://github.com/tsuzukihashi/Kajiri（2026-11-05。公開の前に履歴まで鍵・トークン・Firebase の設定・チーム ID・個人のメールが無いことを確かめた）
-- [ ] 提出
+- [x] App Store の審査に出した（2026-11-05。1.0.0 (2)・WAITING_FOR_REVIEW・承認されたら自動で公開）。メタデータ・無料・175地域・年齢制限・カテゴリ（仕事効率化）・App プライバシー（その他のユーザーコンテンツ／アプリの機能／ユーザーに関連付けない）・審査メモ（store/ios/review_notes.txt）・画面録画を入れた
+- [ ] プロダクトページのヘッダと検索結果の絵（任意の枠。1.0 が承認されたあと、アセットライブラリから単独で出す）
+- [ ] ハッカソンの提出（11/10 14:00）

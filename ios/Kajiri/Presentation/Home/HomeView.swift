@@ -69,6 +69,7 @@ struct HomeView: View {
         .sensoryFeedback(trigger: steps.filter(\.isDone).count) { old, new in new > old ? .success : nil }
         #if DEBUG
         .onAppear {
+            openStoreShot()
             // 確かめる・デモを撮るとき用: -demoThrow "メモ" で、メモを入れた投げるシートを開く
             let arguments = ProcessInfo.processInfo.arguments
             if let index = arguments.firstIndex(of: "-demoThrow"), index + 1 < arguments.count {
@@ -196,6 +197,24 @@ struct HomeView: View {
             .padding(.bottom, 110)
         }
     }
+
+    #if DEBUG
+    /// App Store のスクリーンショット用: -storeShot で、ホームから直接その画面を開く
+    private func openStoreShot() {
+        guard let shot = StoreShots.shot else { return }
+        let picks = TodayPicker.pick(from: steps, now: AppClock.now, limit: TodayPicker.dailyCount)
+        switch shot {
+        case "focus":
+            if let step = picks.open.first(where: { $0.title.contains("見出し") }) ?? picks.open.first { path = [.focus(step.uuid)] }
+        case "handoff":
+            if let step = steps.first(where: { $0.owner == .kajiri && $0.workState == .ready && $0.title.contains("要点") }) { path = [.handoff(step.uuid)] }
+        case "month": path = [.month]
+        case "matrix": path = [.matrix]
+        case "weekly": showsWeekly = true
+        default: break
+        }
+    }
+    #endif
 
     /// 薪や丸太が増えた・片づいた・締め切りが変わったら、通知を入れ直す
     private var notificationSignature: String {

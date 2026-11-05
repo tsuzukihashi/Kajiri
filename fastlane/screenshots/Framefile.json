@@ -1,0 +1,22 @@
+{
+  "device_frame_version": "latest",
+  "default": {
+    "background": "./background.jpg",
+    "padding": 60,
+    "stack_title": true,
+    "title_below_image": false,
+    "font_scale_factor": 0.095,
+    "frame": "SILVER",
+    "keyword": {
+      "font": "./fonts/HiraginoSans-W7.ttc",
+      "color": "#B07A0E",
+      "font_size": 64
+    },
+    "title": {
+      "font": "./fonts/HiraginoSans-W7.ttc",
+      "color": "#1C1C1E",
+      "font_size": 96
+    }
+  },
+  "data": []
+}

@@ -1,0 +1,15 @@
+# App Store のスクリーンショットを撮る。リポジトリのルートで:
+#   (cd ios && xcodegen generate) && fastlane snapshot
+# 撮ったあと枠と見出しを付ける: (cd fastlane/screenshots && fastlane frameit silver)
+project("./ios/Kajiri.xcodeproj")
+scheme("Kajiri")
+devices(["iPhone 18 Pro Max"])   # 1320x2868。frameit の iPhone 17 Pro Max（幅 1320）の枠が当たる
+languages(["ja"])
+output_directory("./fastlane/screenshots")
+clear_previous_screenshots(true)
+override_status_bar(true)
+only_testing(["KajiriUITests/ScreenshotTests"])
+concurrent_simulators(false)
+stop_after_first_error(true)
+erase_simulator(false)
+reinstall_app(false)

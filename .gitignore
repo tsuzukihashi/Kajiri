@@ -35,3 +35,8 @@ ui-debug.log
 
 # ---- デモ動画の素材（大きいのでリポジトリに入れない） ----
 docs/demo/
+
+# ---- ストアのスクリーンショット（UI テストと frameit で作り直せるので入れない） ----
+fastlane/screenshots/ja/*.png
+fastlane/screenshots_upload/
+fastlane/report.xml

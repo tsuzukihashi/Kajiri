@@ -33,7 +33,7 @@ targets:
     type: application
     platform: iOS
     scheme:
-      testTargets: [KajiriTests]
+      testTargets: [KajiriTests, KajiriUITests]
     sources:
       - path: Kajiri
     dependencies:
@@ -92,6 +92,20 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/Kajiri.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Kajiri
         BUNDLE_LOADER: $(TEST_HOST)
+
+  # App Store のスクリーンショットを撮る（fastlane snapshot）。アプリを -storeShots で起動し、見本のデータで撮る
+  KajiriUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: KajiriUITests
+    dependencies:
+      - target: Kajiri
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tsuzukit.KajiriUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Kajiri
 
   # 共有シートの「Kajiri」。共有された文章・URL を App Group に置き、アプリを開いたときに投げるシートへ入れる
   KajiriShare:
