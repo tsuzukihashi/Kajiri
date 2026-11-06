@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { MODEL, makeClient } from "../src/claude.ts";
 import { AppError } from "../src/errors.ts";
 import { decompose, prep, resplit, weekly, work } from "../src/kajiri.ts";
-import { DECOMPOSE_SCHEMA, PREP_SCHEMA, RESPLIT_SCHEMA, WEEKLY_SCHEMA } from "../src/prompts.ts";
+import { DECOMPOSE_SCHEMA, PREP_SCHEMA, RESPLIT_SCHEMA, WEEKLY_SCHEMA, decomposeUserText, upcomingDays } from "../src/prompts.ts";
 import { parseDecomposeInput, parsePrepInput, parseResplitInput, parseWeeklyInput } from "../src/validate.ts";
 
 /** Claude API の代わりに決まった返事を返す fetch。送った中身も控える */
@@ -188,4 +188,18 @@ test("ふりかえり: 曜日が7日分でなければ断る", () => {
 test("ふりかえりの形: additionalProperties:false で、全部が required", () => {
   assert.equal(WEEKLY_SCHEMA.additionalProperties, false);
   assert.deepEqual([...WEEKLY_SCHEMA.required].sort(), Object.keys(WEEKLY_SCHEMA.properties).sort());
+});
+
+test("予定の暦: 今日から1日ずつ、曜日つきで並べる", () => {
+  assert.equal(upcomingDays("2026-11-07", 3), "2026-11-07(土) 2026-11-08(日) 2026-11-09(月)");
+  assert.equal(upcomingDays("2026-12-31", 2), "2026-12-31(木) 2027-01-01(金)");
+  const text = decomposeUserText({ memo: "金曜15時に歯医者", today: "2026-11-07", weekday: "土", overrun: null });
+  assert.match(text, /2026-11-13\(金\)/);
+});
+
+test("分解の形: 予定を必ず返す", () => {
+  assert.ok((DECOMPOSE_SCHEMA.required as readonly string[]).includes("events"));
+  const event = DECOMPOSE_SCHEMA.properties.events.items;
+  assert.equal(event.additionalProperties, false);
+  assert.deepEqual([...event.required].sort(), Object.keys(event.properties).sort());
 });

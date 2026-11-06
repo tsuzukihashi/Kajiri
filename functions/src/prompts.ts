@@ -38,6 +38,20 @@ const STEP = {
   additionalProperties: false,
 } as const;
 
+/** カレンダーに入れる予定1件。確認なしで入るので、メモから1日に決まるものだけ */
+const EVENT = {
+  type: "object",
+  properties: {
+    title: { type: "string", description: "予定の短い名前（例: 歯医者、田中さんと飲み会）" },
+    date: { type: "string", description: "予定の日 YYYY-MM-DD。「これからの日付」から選ぶ" },
+    start_time: { type: ["string", "null"], description: "始まる時刻 HH:MM（24時間）。時刻が書いていなければ null（終日の予定になる）" },
+    end_time: { type: ["string", "null"], description: "終わる時刻 HH:MM（24時間）。書いていなければ null" },
+    location: { type: ["string", "null"], description: "メモに書いてある場所。無ければ null" },
+  },
+  required: ["title", "date", "start_time", "end_time", "location"],
+  additionalProperties: false,
+} as const;
+
 export const DECOMPOSE_SCHEMA = {
   type: "object",
   properties: {
@@ -45,10 +59,15 @@ export const DECOMPOSE_SCHEMA = {
     deadline: { type: ["string", "null"], description: "丸太ぜんたいの締め切り YYYY-MM-DD。分からなければ null" },
     deadline_note: { type: "string", description: "締め切りをどう決めたか一言（例: 「12月20日に引っ越し」と書いてあった／一般的な期限）" },
     why: { type: "string", description: "終わると何がうれしいかを、場面で1行（例: 新しい部屋で最初の週末をゆっくり過ごせる）" },
-    steps: { type: "array", items: STEP, description: "すぐ手が動く大きさの薪。3〜10本。やる順に並べる" },
+    steps: {
+      type: "array",
+      items: STEP,
+      description: "すぐ手が動く大きさの薪。3〜10本。やる順に並べる。予定を入れるだけで済むメモなら空",
+    },
+    events: { type: "array", items: EVENT, description: "カレンダーに入れる予定。メモから日が決まるものだけ。無ければ空" },
     comment: { type: "string", description: "カジリのひとこと。落ち着いた職人の相棒の口調で、責めず急かさず、30字くらいまで" },
   },
-  required: ["log_title", "deadline", "deadline_note", "why", "steps", "comment"],
+  required: ["log_title", "deadline", "deadline_note", "why", "steps", "events", "comment"],
   additionalProperties: false,
 } as const;
 
@@ -82,7 +101,27 @@ export function decomposeSystemPrompt(): string {
   return `${COMMON_RULES}
 
 これから、相棒が雑に投げたメモが届く。何をしたいのかを読み取り、1本の丸太として、やる順の薪に分けて返す。
-メモに複数の丸太が混ざっているときは、いちばん大きい1本だけを扱い、comment で「ほかの丸太は別に投げて」と伝える。`;
+メモに複数の丸太が混ざっているときは、いちばん大きい1本だけを扱い、comment で「ほかの丸太は別に投げて」と伝える。
+
+予定（events）の決まり:
+- 予定は相棒のカレンダーに確認なしで入る。だから、確かなものだけを入れる
+- 入れるのは、メモに書いてある「その日に、どこかへ行く・だれかと会う・何かが行われる」約束だけ
+- 日は、メモから1日に決まるものだけ。「金曜」は今日より後のいちばん近い金曜、「来週の金曜」は月曜はじまりの次の週の金曜。日付は「これからの日付」から選び、自分で計算しない
+- 「〜までに」「〜が締め切り」は予定ではなく deadline にする
+- 「来週どこかで」「月末あたり」「そのうち」のように1日に決まらないものは入れない。相手の返事待ち、これから予約するもの、行くか迷っているもの、毎週のようなくり返し、日時を変えたい話も入れない
+- 終わったことと、今日より前の日付は入れない
+- 時刻が書いてあれば start_time にする。「午後」「夕方」だけなら null にする
+- 予定を入れるだけで済み、準備が書いていないメモなら steps は空にして、log_title に予定の名前を入れる。持ち物や用意が書いてあれば、それを steps にする`;
+}
+
+/** 曜日の計算違いで別の日に予定が入らないように、3週間ぶんの暦を渡す */
+export function upcomingDays(today: string, days: number): string {
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const start = Date.parse(`${today}T00:00:00Z`);
+  return Array.from({ length: days }, (_, offset) => {
+    const date = new Date(start + offset * 86_400_000);
+    return `${date.toISOString().slice(0, 10)}(${weekdays[date.getUTCDay()]})`;
+  }).join(" ");
 }
 
 export function decomposeUserText(params: { memo: string; today: string; weekday: string; overrun: number | null }): string {
@@ -91,6 +130,7 @@ export function decomposeUserText(params: { memo: string; today: string; weekday
       ? ""
       : `\nこの相棒は、見積もりの ${params.overrun.toFixed(1)} 倍くらい時間がかかることが多い。minutes はそれを見込んで決める。`;
   return `今日: ${params.today}（${params.weekday}）${overrun}
+これからの日付: ${upcomingDays(params.today, 21)}
 
 相棒のメモ:
 <memo>

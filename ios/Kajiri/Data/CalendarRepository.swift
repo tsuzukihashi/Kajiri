@@ -17,6 +17,11 @@ struct EventDraft {
     let notes: String
 }
 
+enum CalendarWriteError: Error {
+    /// 予定を入れられるカレンダーが1つも無い
+    case noCalendar
+}
+
 /// iPhone のカレンダーを読み書きする口。Preview とテストでは偽物を差し込む。
 @MainActor
 protocol CalendarRepositoryProtocol: AnyObject {
@@ -27,6 +32,10 @@ protocol CalendarRepositoryProtocol: AnyObject {
     func editorRequest(for event: CalendarEvent) -> EventEditorRequest?
     /// 新しい予定を入れる画面。偽物では nil
     func newEventRequest(draft: EventDraft) -> EventEditorRequest?
+    /// カジリが読み取った予定を、画面を出さずに入れる。返すのは消すときに使う id
+    func add(_ event: PlannedEvent) throws -> String
+    /// 入れた予定を消す。もう無ければ何もしない
+    func remove(identifier: String) throws
     /// カレンダーの中身が変わったら呼ぶ（ほかのアプリで予定を足した・同期した など）
     func observeChanges(_ handler: @escaping @MainActor @Sendable () -> Void)
 }
@@ -85,6 +94,24 @@ final class EventKitCalendarRepository: CalendarRepositoryProtocol {
         return EventEditorRequest(store: store, event: event)
     }
 
+    func add(_ event: PlannedEvent) throws -> String {
+        guard let calendar = store.defaultCalendarForNewEvents else { throw CalendarWriteError.noCalendar }
+        let item = EKEvent(eventStore: store)
+        item.title = event.title
+        item.isAllDay = event.isAllDay
+        item.startDate = event.start
+        item.endDate = event.end
+        item.location = event.location.isEmpty ? nil : event.location
+        item.calendar = calendar
+        try store.save(item, span: .thisEvent, commit: true)
+        return item.eventIdentifier ?? item.calendarItemIdentifier
+    }
+
+    func remove(identifier: String) throws {
+        guard let item = store.event(withIdentifier: identifier) else { return }
+        try store.remove(item, span: .thisEvent, commit: true)
+    }
+
     func observeChanges(_ handler: @escaping @MainActor @Sendable () -> Void) {
         if let observer { NotificationCenter.default.removeObserver(observer) }
         observer = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: store, queue: .main) { _ in
@@ -119,7 +146,10 @@ final class EventKitCalendarRepository: CalendarRepositoryProtocol {
 @MainActor
 final class MockCalendarRepository: CalendarRepositoryProtocol {
     private let state: CalendarAccess
-    private let stored: [CalendarEvent]
+    private var stored: [CalendarEvent]
+    private var nextID = 0
+    /// 入れるのに失敗する端末を試すなら true
+    var failsToWrite = false
 
     init(access: CalendarAccess, events: [CalendarEvent]) {
         self.state = access
@@ -133,6 +163,19 @@ final class MockCalendarRepository: CalendarRepositoryProtocol {
     }
     func editorRequest(for event: CalendarEvent) -> EventEditorRequest? { nil }
     func newEventRequest(draft: EventDraft) -> EventEditorRequest? { nil }
+    func add(_ event: PlannedEvent) throws -> String {
+        if failsToWrite { throw CalendarWriteError.noCalendar }
+        nextID += 1
+        let id = "added-\(nextID)"
+        stored.append(CalendarEvent(
+            id: id, eventIdentifier: id, title: event.title, start: event.start, end: event.end,
+            isAllDay: event.isAllDay, location: event.location, calendarTitle: "", red: 0, green: 0, blue: 0, source: .device
+        ))
+        return id
+    }
+    func remove(identifier: String) throws {
+        stored.removeAll { $0.eventIdentifier == identifier }
+    }
     func observeChanges(_ handler: @escaping @MainActor @Sendable () -> Void) {}
 }
 #endif

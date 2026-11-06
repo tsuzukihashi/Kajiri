@@ -42,6 +42,7 @@ scripts/    秘密チェック
 - モデルは、分解が `claude-sonnet-5-5`、それ以外が `claude-opus-5-5`（`functions/src/claude.ts`）。モデルを変えるときは `evals/` で精度・代金・速さを測ってから決める。`fallbacks: "default"`（安全の判定で断られたら別のモデルでやり直す）を付けている
 - iOS 26、Swift 6（strict concurrency）。MVVM + UseCase。SwiftData の都合で UseCase は MainActor
 - 画面の文字は日本語をキーにして String Catalog で訳す
+- 予定は確認なしでカレンダーに入る。分解の指示（`DECOMPOSE_SCHEMA`・`decomposeSystemPrompt`）を変えたら `evals/events/` を流し、余計な予定や日時違いが増えていないかを見てから出す
 
 ## 🚨 課金と費用の上限が決まるまで、App Store の審査に出さない【2026-11-05】
 

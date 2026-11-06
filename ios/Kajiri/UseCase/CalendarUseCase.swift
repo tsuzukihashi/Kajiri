@@ -58,6 +58,56 @@ final class CalendarUseCase {
         reload()
     }
 
+    // MARK: カジリが予定を入れる
+
+    /// メモから読み取った予定を、確認なしで iPhone のカレンダーに入れる。
+    /// 許可をまだ聞いていなければ、ここで初めて聞く
+    func place(_ events: [EventDTO], now: Date) async -> EventPlacement {
+        let planned = events.compactMap { PlannedEvent.make(from: $0, now: now) }
+        guard !planned.isEmpty else { return .empty }
+        if access == .notDetermined { await requestAccess() }
+        guard access == .granted else {
+            return EventPlacement(events: planned.map { PlacedEvent(id: UUID(), event: $0, state: .notAdded) }, needsAccess: true)
+        }
+        let placed = planned.map { event in
+            PlacedEvent(id: UUID(), event: event, state: put(event))
+        }
+        reload()
+        return EventPlacement(events: placed, needsAccess: false)
+    }
+
+    private func put(_ event: PlannedEvent) -> PlacedEvent.State {
+        let day = JapanDate.startOfDay(event.start)
+        let existing = events(from: day, to: JapanDate.addingDays(1, to: day))
+        if existing.contains(where: event.matches) { return .alreadyThere }
+        guard let identifier = try? repository.add(event) else { return .notAdded }
+        return .added(identifier: identifier)
+    }
+
+    /// 入れた予定を1件消す。消せなければそのまま返す
+    func undo(_ placed: PlacedEvent, in placement: EventPlacement) -> EventPlacement {
+        guard case let .added(identifier) = placed.state, (try? repository.remove(identifier: identifier)) != nil else {
+            return placement
+        }
+        reload()
+        var updated = placement
+        updated.events = placement.events.map { event in
+            guard event.id == placed.id else { return event }
+            return PlacedEvent(id: event.id, event: event.event, state: .undone)
+        }
+        return updated
+    }
+
+    /// 入れた予定を全部消す
+    func undoAll(in placement: EventPlacement) {
+        for placed in placement.events {
+            if case let .added(identifier) = placed.state {
+                try? repository.remove(identifier: identifier)
+            }
+        }
+        reload()
+    }
+
     // MARK: Google カレンダー
 
     var isGoogleConnected: Bool {
@@ -271,10 +321,14 @@ final class CalendarUseCase {
 
     /// 例: 11/20(木) 10:00〜11:00、12/20(日) 終日
     static func when(_ event: CalendarEvent) -> String {
+        whenText(start: event.start, end: event.end, isAllDay: event.isAllDay)
+    }
+
+    static func whenText(start: Date, end: Date, isAllDay: Bool) -> String {
         let calendar = JapanDate.calendar
-        let day = "\(calendar.component(.month, from: event.start))/\(calendar.component(.day, from: event.start))(\(JapanDate.weekdaySymbol(event.start)))"
-        if event.isAllDay { return "\(day) " + String(localized: "終日") }
-        return "\(day) \(clock(event.start))〜\(clock(event.end))"
+        let day = "\(calendar.component(.month, from: start))/\(calendar.component(.day, from: start))(\(JapanDate.weekdaySymbol(start)))"
+        if isAllDay { return "\(day) " + String(localized: "終日") }
+        return "\(day) \(clock(start))〜\(clock(end))"
     }
 
     static func clock(_ date: Date) -> String {

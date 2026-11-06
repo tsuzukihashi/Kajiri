@@ -33,6 +33,15 @@
 - ストアのスクショ: `ios/KajiriUITests/ScreenshotTests.swift` が `-storeShots`（メモリの中の見本データと決まった答えの中継サーバ。`App/StoreShots.swift`）で6枚撮る。fastlane snapshot は 2.240.0 でシミュレータ一覧を読むところで落ちるので、`xcodebuild test -only-testing:KajiriUITests/ScreenshotTests` を直接当て、`~/Library/Caches/tools.fastlane/screenshots` から `fastlane/screenshots/ja` へ写して `fastlane frameit silver`（LANG=en_US.UTF-8）。撮る前に `simctl status_bar override --time 10:15`（アプリの時計と合わせる）
 - DEBUG だけの起動引数: `-seedDemo`（見本の予定）・`-demoHour 10`（時計をずらす）・`-demoThrow "メモ"`（デモ動画を撮るときに使う）
 
+## 2026-11-07 に足したもの
+
+- Google カレンダーを Kajiri の中でつなぐ（`GoogleCalendarRepository`）: コードは main にある。**Google 側の設定（GOOGLE_IOS_CLIENT_ID・カレンダー API の有効化・同意画面）はまだで、実際のログインは一度も試していない**。設定が空のビルドでは、つなぐカードの押すところが動かない
+- 予定もカジリが入れる: `kajiriDecompose` が `events` を返す → `CalendarUseCase.place` が確認なしで iPhone のカレンダーに入れる → `PlacedEventsCard` に「戻す」。同じ予定があれば入れない。「書き直す」は入れた予定も消す。予定から投げたメモでは入れない。`steps` が空なら丸太を作らず「閉じる」だけ出す
+  - 書き込み先は iPhone の既定のカレンダーだけ。Google へ直接は書かない（読み取りの権限のまま）
+  - **`functions` はまだデプロイしていない**（ログイン切れ）。デプロイするまで events は返らず、今までどおり薪だけが出る
+  - **精度は未測定。** `evals/events/run.mjs` を流してからデプロイする（予定 24 件＋前からの分解 16 件）
+  - 画面はまだ動かして見ていない
+
 ## まだのこと
 
 - [x] Google カレンダーのアプリだけを使い、iPhone の設定に Google アカウントを入れていない人には予定が見えない → 月の表示のいちばん下（Kajiri について の上）に「Google カレンダーの予定が出ないとき」を置いた（押すと足し方が開く。`Presentation/Calendar/MissingEventsHelp.swift`）。シミュレータで開いた形まで見た

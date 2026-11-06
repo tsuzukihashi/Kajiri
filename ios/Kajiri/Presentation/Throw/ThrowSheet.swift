@@ -4,6 +4,7 @@ import SwiftUI
 /// 渡すと、同じシートの中で分解の結果に切りかわる（独立したモーダルの流れ）。
 struct ThrowSheet: View {
     @Environment(LogUseCase.self) private var useCase
+    @Environment(CalendarUseCase.self) private var calendar
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: ThrowViewModel
     @FocusState private var isMemoFocused: Bool
@@ -19,10 +20,13 @@ struct ThrowSheet: View {
         case let .result(result):
             SplitResultView(
                 result: result,
-                onBack: { viewModel.backToEditing() },
+                placement: viewModel.placement,
+                onUndo: { viewModel.undo($0, calendar: calendar) },
+                onBack: { viewModel.backToEditing(calendar: calendar) },
                 onAccept: {
                     viewModel.save(useCase: useCase)
                     dismiss()
+                    guard !result.steps.isEmpty else { return }
                     // 薪が置かれたところで、朝と締め切りの前の日に知らせてよいかを聞く
                     Task { await useCase.askForNotifications() }
                 }
@@ -41,7 +45,7 @@ struct ThrowSheet: View {
                 },
                 onSplit: {
                     isMemoFocused = false
-                    Task { await viewModel.split(useCase: useCase) }
+                    Task { await viewModel.split(useCase: useCase, calendar: calendar) }
                 }
             )
             ScrollView {
@@ -103,6 +107,7 @@ struct ThrowSheet: View {
     let (useCase, container) = LogUseCase.preview(filled: false)
     ThrowSheet(request: ThrowRequest(memo: "", sourceEventID: nil))
         .environment(useCase)
+        .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)
 }
 
@@ -110,6 +115,7 @@ struct ThrowSheet: View {
     let (useCase, container) = LogUseCase.preview(filled: false)
     ThrowSheet(request: ThrowRequest(memo: "12月20日 引っ越し。荷造りの準備", sourceEventID: "preview"))
         .environment(useCase)
+        .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)
 }
 #endif

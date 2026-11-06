@@ -21,16 +21,33 @@ struct StepDTO: Codable, Sendable, Equatable {
     }
 }
 
+/// メモから読み取った予定1件。functions/src/prompts.ts の EVENT と同じ
+struct EventDTO: Codable, Sendable, Equatable {
+    var title: String
+    var date: String
+    var startTime: String?
+    var endTime: String?
+    var location: String?
+
+    enum CodingKeys: String, CodingKey {
+        case title, date, location
+        case startTime = "start_time"
+        case endTime = "end_time"
+    }
+}
+
 struct DecomposeResult: Codable, Sendable, Equatable {
     var logTitle: String
     var deadline: String?
     var deadlineNote: String
     var why: String
     var steps: [StepDTO]
+    /// 前の中継サーバは返さないので nil になる
+    var events: [EventDTO]?
     var comment: String
 
     enum CodingKeys: String, CodingKey {
-        case deadline, why, steps, comment
+        case deadline, why, steps, events, comment
         case logTitle = "log_title"
         case deadlineNote = "deadline_note"
     }
@@ -70,7 +87,19 @@ extension DecomposeResult {
             .sample("源泉徴収票が届く", minutes: 1, owner: .wait, quadrant: .stock, work: nil),
             .sample("マイナンバーカードを机に出す", minutes: 1, owner: .me, quadrant: .today, work: nil),
         ],
+        events: [],
         comment: "7本の薪にした。まずはここからな。"
+    )
+
+    /// 予定を入れるだけで済んだメモ
+    static let sampleDentist = DecomposeResult(
+        logTitle: "歯医者",
+        deadline: nil,
+        deadlineNote: "",
+        why: "",
+        steps: [],
+        events: [EventDTO(title: "歯医者", date: "2026-11-13", startTime: "15:00", endTime: nil, location: nil)],
+        comment: "入れておいた。"
     )
 }
 #endif

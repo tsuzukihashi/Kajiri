@@ -62,7 +62,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
-        NSCalendarsFullAccessUsageDescription: 予定を1日の線に並べ、予定のすき間に薪を置くために使います。予定はこの iPhone の中で読みます。「カジリに見てもらう」を押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。
+        NSCalendarsFullAccessUsageDescription: 予定を1日の線に並べ、予定のすき間に薪を置くために使います。投げたメモに日時が書いてある予定は、カジリがカレンダーに入れます。予定はこの iPhone の中で読みます。「カジリに見てもらう」を押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         # Google カレンダーを読むログイン。値は Config/Local.xcconfig に書く（空なら、つなぐ画面が出ないだけ）

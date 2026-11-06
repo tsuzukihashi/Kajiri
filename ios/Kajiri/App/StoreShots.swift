@@ -179,6 +179,7 @@ struct StoreShotAPI: KajiriAPIProtocol {
                 StoreShots.dtoForAPI("マイナンバーカードの暗証番号を確かめる", 5, .me, .stock, motion: "カードを財布から出す", work: nil, ask: nil),
                 StoreShots.dtoForAPI("e-Tax で申告する", 15, .me, .stock, motion: "PCでe-Taxのページを開く", work: nil, ask: nil),
             ],
+            events: [],
             comment: "最初は箱を机に出すだけでいい。中身はそのあとだ。"
         )
     }

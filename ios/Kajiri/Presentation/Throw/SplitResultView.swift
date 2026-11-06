@@ -3,6 +3,8 @@ import SwiftUI
 /// カジリがかじった結果。薪が「誰がやるか」の印つきで並ぶ
 struct SplitResultView: View {
     let result: DecomposeResult
+    let placement: EventPlacement
+    let onUndo: (PlacedEvent) -> Void
     let onBack: () -> Void
     let onAccept: () -> Void
 
@@ -11,6 +13,9 @@ struct SplitResultView: View {
             header
             ScrollView {
                 VStack(spacing: 8) {
+                    if !placement.isEmpty {
+                        PlacedEventsCard(placement: placement, onUndo: onUndo)
+                    }
                     ForEach(Array(result.steps.enumerated()), id: \.offset) { _, step in
                         StepRow(step: step)
                     }
@@ -26,7 +31,7 @@ struct SplitResultView: View {
             }
             HStack(spacing: 10) {
                 Button("書き直す", action: onBack).buttonStyle(SecondaryButtonStyle())
-                Button("これでいこう", action: onAccept).buttonStyle(PrimaryButtonStyle())
+                Button(result.steps.isEmpty ? "閉じる" : "これでいこう", action: onAccept).buttonStyle(PrimaryButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.top, 10)
@@ -51,7 +56,7 @@ struct SplitResultView: View {
             HStack(spacing: 14) {
                 KajiriImage(pose: .gnaw, size: 72)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("· 丸太").font(.system(size: 12)).foregroundStyle(Color(white: 0.68))
+                    Text(result.steps.isEmpty ? "· 予定" : "· 丸太").font(.system(size: 12)).foregroundStyle(Color(white: 0.68))
                     Text(result.logTitle).font(.system(size: 22, weight: .heavy)).foregroundStyle(.white)
                     Text(result.comment).font(.system(size: 13)).foregroundStyle(Color(white: 0.9))
                 }
@@ -64,7 +69,19 @@ struct SplitResultView: View {
 }
 
 #if DEBUG
-#Preview {
-    SplitResultView(result: .sampleTax, onBack: {}, onAccept: {})
+#Preview("薪だけ") {
+    SplitResultView(result: .sampleTax, placement: .empty, onUndo: { _ in }, onBack: {}, onAccept: {})
+}
+
+#Preview("予定と薪") {
+    SplitResultView(result: .sampleTax, placement: .sampleAdded, onUndo: { _ in }, onBack: {}, onAccept: {})
+}
+
+#Preview("予定だけ") {
+    SplitResultView(result: .sampleDentist, placement: .sampleAdded, onUndo: { _ in }, onBack: {}, onAccept: {})
+}
+
+#Preview("許可が無い") {
+    SplitResultView(result: .sampleDentist, placement: .sampleNeedsAccess, onUndo: { _ in }, onBack: {}, onAccept: {})
 }
 #endif

@@ -1,0 +1,30 @@
+{
+  "today": "2026-11-07",
+  "weekday": "土",
+  "cases": [
+    { "id": "friday", "memo": "金曜15時に歯医者、保険証もってく", "events": [{ "date": "2026-11-13", "start": "15:00", "has": "歯医者" }], "steps": true },
+    { "id": "tomorrow", "memo": "明日19時に田中さんと飲み", "events": [{ "date": "2026-11-08", "start": "19:00", "has": "田中" }], "steps": false },
+    { "id": "next-wed", "memo": "来週の水曜 10時から12時 健診 渋谷のクリニック", "events": [{ "date": "2026-11-11", "start": "10:00", "end": "12:00", "has": "健診" }] },
+    { "id": "moving", "memo": "12月20日に引っ越し。粗大ゴミどうしよう", "events": [{ "date": "2026-12-20", "start": null, "has": "引っ越し" }], "steps": true },
+    { "id": "two-weeks", "memo": "再来週の月曜 14時 オンライン面談", "events": [{ "date": "2026-11-16", "start": "14:00", "has": "面談" }] },
+    { "id": "numeric", "memo": "11/25 13:30 税理士さん。領収書もってく", "events": [{ "date": "2026-11-25", "start": "13:30", "has": "税理士" }], "steps": true },
+    { "id": "sunday", "memo": "今週の日曜 友達の結婚式", "events": [{ "date": "2026-11-08", "start": null, "has": "結婚式" }] },
+    { "id": "afternoon", "memo": "今日の午後に美容院", "events": [{ "date": "2026-11-07", "start": null, "has": "美容院" }] },
+    { "id": "xmas", "memo": "12/24 18時 レストラン予約した、プレゼントまだ買ってない", "events": [{ "date": "2026-12-24", "start": "18:00", "has": "レストラン" }], "steps": true },
+    { "id": "meet", "memo": "明日の朝9時に駅で山田さんと待ち合わせ", "events": [{ "date": "2026-11-08", "start": "09:00", "has": "山田" }] },
+    { "id": "two", "memo": "火曜10時に歯医者、木曜19時に飲み会", "events": [{ "date": "2026-11-10", "start": "10:00", "has": "歯医者" }, { "date": "2026-11-12", "start": "19:00", "has": "飲み会" }] },
+    { "id": "next-month", "memo": "来月3日 14時 車検", "events": [{ "date": "2026-12-03", "start": "14:00", "has": "車検" }] },
+    { "id": "task-only", "memo": "確定申告やらなきゃ", "events": [], "steps": true },
+    { "id": "deadline", "memo": "金曜までに企画書", "events": [], "steps": true },
+    { "id": "deadline2", "memo": "3月15日 確定申告の締め切り", "events": [], "steps": true },
+    { "id": "deadline3", "memo": "11月末が保険の更新期限", "events": [], "steps": true },
+    { "id": "vague", "memo": "来週どこかで歯医者予約する", "events": [], "steps": true },
+    { "id": "maybe", "memo": "月末あたりに実家帰るかも", "events": [] },
+    { "id": "undecided", "memo": "田中さんに日程聞いて飲み会決める", "events": [], "steps": true },
+    { "id": "past", "memo": "昨日の打ち合わせの議事録まとめる", "events": [], "steps": true },
+    { "id": "to-book", "memo": "歯医者の予約を取る", "events": [], "steps": true },
+    { "id": "weekly", "memo": "毎週火曜はヨガ", "events": [] },
+    { "id": "maybe-live", "memo": "行けたら土曜のライブ行く", "events": [] },
+    { "id": "reschedule", "memo": "水曜14時の打ち合わせを木曜に変えてもらいたい", "events": [], "steps": true }
+  ]
+}
