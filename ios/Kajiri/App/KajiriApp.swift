@@ -23,13 +23,13 @@ struct KajiriApp: App {
             StoreShots.seed(shots.mainContext, now: AppClock.now)
             self.container = shots
             _useCase = State(initialValue: LogUseCase(context: shots.mainContext, api: StoreShotAPI(), notifications: MockNotificationScheduler()))
-            _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: StoreShotAPI()))
+            _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), google: MockGoogleCalendarRepository(isAvailable: false, account: nil, connectsAs: nil, events: [], failure: nil), api: StoreShotAPI()))
             return
         }
         #endif
         self.container = container
         _useCase = State(initialValue: LogUseCase(context: container.mainContext, api: KajiriAPI(), notifications: NotificationScheduler()))
-        _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), api: KajiriAPI()))
+        _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), google: GoogleCalendarRepository(), api: KajiriAPI()))
     }
 
     var body: some Scene {
@@ -37,6 +37,7 @@ struct KajiriApp: App {
             HomeView()
                 .environment(useCase)
                 .environment(calendar)
+                .onOpenURL { GoogleCalendarRepository.handle($0) }
                 #if DEBUG
                 .task {
                     await DemoSeeder.seedIfAsked()

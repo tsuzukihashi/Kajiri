@@ -7,6 +7,7 @@ struct CalendarConnectCard: View {
     let onConnect: () -> Void
 
     @Environment(\.openURL) private var openURL
+    @Environment(CalendarUseCase.self) private var calendar
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -23,6 +24,18 @@ struct CalendarConnectCard: View {
                 }
             }
             .buttonStyle(SecondaryButtonStyle())
+            if calendar.googleConnection != .unavailable {
+                Button("Google カレンダーをつなぐ") {
+                    Task { await calendar.connectGoogle(now: AppClock.now) }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .disabled(calendar.isGoogleWorking)
+            }
+            if let message = calendar.googleMessage {
+                Text(message)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Theme.ink)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -48,10 +61,12 @@ struct CalendarConnectCard: View {
     CalendarConnectCard(access: .notDetermined) {}
         .padding(.vertical)
         .background(Theme.ground)
+        .environment(CalendarUseCase.preview(access: .notDetermined))
 }
 
 #Preview("断られた") {
     CalendarConnectCard(access: .denied) {}
         .padding(.vertical)
         .background(Theme.ground)
+        .environment(CalendarUseCase.preview(access: .denied))
 }

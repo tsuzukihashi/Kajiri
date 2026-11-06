@@ -1,8 +1,8 @@
 import Foundation
 import Observation
 
-/// iPhone のカレンダーの予定を読み、カジリに準備を見てもらう。
-/// 予定は Kajiri に写さない（読むたびに iPhone のカレンダーから取る）。
+/// iPhone のカレンダーと、つないだ Google カレンダーの予定を読み、カジリに準備を見てもらう。
+/// 予定は Kajiri に写さない（iPhone のカレンダーは読むたびに取り、Google の予定はメモリの中にだけ持つ）。
 @MainActor
 @Observable
 final class CalendarUseCase {
@@ -10,19 +10,34 @@ final class CalendarUseCase {
     static let prepDays = 14
     /// 一度に送る予定の数の上限（中継サーバの上限 60 より少なく）
     static let prepLimit = 40
+    /// 画面に戻ったときに Google を読み直す間隔（秒）
+    static let googleRefreshInterval: TimeInterval = 300
 
     private let repository: any CalendarRepositoryProtocol
+    private let google: any GoogleCalendarRepositoryProtocol
     private let api: any KajiriAPIProtocol
 
     private(set) var access: CalendarAccess
     /// カレンダーが変わるたびに増える。画面はこれを見て読み直す
     private(set) var revision = 0
+    private(set) var googleConnection: GoogleConnection
+    /// つなぐ・読む途中
+    private(set) var isGoogleWorking = false
+    /// 読めなかったときに、カードに出す文
+    private(set) var googleMessage: String?
     @ObservationIgnored private var cache: [String: [CalendarEvent]] = [:]
+    @ObservationIgnored private var googleEvents: [CalendarEvent] = []
+    /// 読んである期間
+    @ObservationIgnored private var googleRange: (from: Date, to: Date)?
+    @ObservationIgnored private var googleLoadedAt: Date?
+    @ObservationIgnored private var didRestoreGoogle = false
 
-    init(repository: any CalendarRepositoryProtocol, api: any KajiriAPIProtocol) {
+    init(repository: any CalendarRepositoryProtocol, google: any GoogleCalendarRepositoryProtocol, api: any KajiriAPIProtocol) {
         self.repository = repository
+        self.google = google
         self.api = api
         self.access = repository.access()
+        self.googleConnection = google.isAvailable ? .disconnected : .unavailable
         repository.observeChanges { [weak self] in
             self?.reload()
         }
@@ -43,6 +58,131 @@ final class CalendarUseCase {
         reload()
     }
 
+    // MARK: Google カレンダー
+
+    var isGoogleConnected: Bool {
+        if case .connected = googleConnection { return true }
+        return false
+    }
+
+    /// iPhone のカレンダーか Google のどちらかから、予定が読めるか
+    var canReadEvents: Bool { access == .granted || isGoogleConnected }
+
+    func connectGoogle(now: Date) async {
+        guard !isGoogleWorking else { return }
+        isGoogleWorking = true
+        defer { isGoogleWorking = false }
+        googleMessage = nil
+        do {
+            // やめたときは nil で、何も変えない
+            guard let account = try await google.connect() else { return }
+            didRestoreGoogle = true
+            googleConnection = .connected(account: account)
+            await loadGoogle(from: Self.defaultRange(now: now).from, to: Self.defaultRange(now: now).to)
+        } catch {
+            await handleGoogle(error)
+        }
+    }
+
+    func disconnectGoogle() async {
+        guard !isGoogleWorking else { return }
+        isGoogleWorking = true
+        defer { isGoogleWorking = false }
+        await google.disconnect()
+        googleConnection = .disconnected
+        googleMessage = nil
+        clearGoogle()
+    }
+
+    /// 画面に戻ったとき。起動して最初の1回は前のログインに戻り、そのあとは間をあけて読み直す
+    func refreshGoogle(now: Date) async {
+        guard googleConnection != .unavailable else { return }
+        guard didRestoreGoogle else {
+            didRestoreGoogle = true
+            await restoreGoogle(now: now)
+            return
+        }
+        guard isGoogleConnected else { return }
+        if let last = googleLoadedAt, now.timeIntervalSince(last) < Self.googleRefreshInterval { return }
+        let range = googleRange ?? Self.defaultRange(now: now)
+        await fetchGoogle(from: range.from, to: range.to)
+    }
+
+    /// まだ読んでいない期間を開いたとき（別の月に移ったなど）
+    func loadGoogle(from: Date, to: Date) async {
+        guard isGoogleConnected else { return }
+        if let range = googleRange {
+            if range.from <= from && to <= range.to { return }
+            await fetchGoogle(from: min(range.from, from), to: max(range.to, to))
+        } else {
+            await fetchGoogle(from: from, to: to)
+        }
+    }
+
+    /// 読めなかったあとの「もう一度」
+    func retryGoogle(now: Date) async {
+        guard isGoogleConnected else { return }
+        let range = googleRange ?? Self.defaultRange(now: now)
+        await fetchGoogle(from: range.from, to: range.to)
+    }
+
+    private func restoreGoogle(now: Date) async {
+        do {
+            guard let account = try await google.restore() else { return }
+            googleConnection = .connected(account: account)
+            let range = Self.defaultRange(now: now)
+            await fetchGoogle(from: range.from, to: range.to)
+        } catch {
+            await handleGoogle(error)
+        }
+    }
+
+    private func fetchGoogle(from: Date, to: Date) async {
+        isGoogleWorking = true
+        defer { isGoogleWorking = false }
+        do {
+            let found = try await google.events(from: from, to: to)
+            // 読んでいる間に切られたら捨てる
+            guard isGoogleConnected else { return }
+            googleEvents = found
+            googleRange = (from, to)
+            googleLoadedAt = .now
+            googleMessage = nil
+            reload()
+        } catch {
+            await handleGoogle(error)
+        }
+    }
+
+    private func handleGoogle(_ error: Error) async {
+        switch error as? GoogleCalendarError {
+        case .notAuthorized:
+            googleConnection = .expired
+            googleMessage = String(localized: "Google につながらなかった。つなぎ直すと、また並ぶ。")
+            clearGoogle()
+        case .scopeMissing:
+            // 足りない許可のままログインを残さない
+            await google.disconnect()
+            googleConnection = .disconnected
+            googleMessage = String(localized: "カレンダーのチェックが外れていた。もう一度つなぐときにチェックを入れると、予定が読める。")
+            clearGoogle()
+        case .requestFailed, .none:
+            googleMessage = String(localized: "Google カレンダーを読めなかった。通信を確かめて、もう一度。")
+        }
+    }
+
+    private func clearGoogle() {
+        googleEvents = []
+        googleRange = nil
+        googleLoadedAt = nil
+        reload()
+    }
+
+    /// 最初に読む期間（前後の月の表示と、準備を見る2週間が入るように）
+    private static func defaultRange(now: Date) -> (from: Date, to: Date) {
+        (JapanDate.addingDays(-35, to: now), JapanDate.addingDays(70, to: now))
+    }
+
     // MARK: 読む
 
     /// その日にかかっている予定（終日も含む）。開始の早い順
@@ -56,7 +196,8 @@ final class CalendarUseCase {
         _ = revision
         let key = "\(from.timeIntervalSince1970)-\(to.timeIntervalSince1970)"
         if let hit = cache[key] { return hit }
-        let found = repository.events(from: from, to: to).sorted { lhs, rhs in
+        let fromGoogle = googleEvents.filter { $0.start < to && $0.end > from }
+        let found = CalendarMerger.merged(device: repository.events(from: from, to: to), google: fromGoogle).sorted { lhs, rhs in
             if lhs.isAllDay != rhs.isAllDay { return lhs.isAllDay }
             return lhs.start < rhs.start
         }
@@ -153,8 +294,20 @@ extension CalendarUseCase {
     static func preview(access: CalendarAccess) -> CalendarUseCase {
         CalendarUseCase(
             repository: MockCalendarRepository(access: access, events: access == .granted ? CalendarEvent.previewWeek(now: .now) : []),
+            google: MockGoogleCalendarRepository(isAvailable: true, account: nil, connectsAs: "kajiri@example.com", events: [], failure: nil),
             api: MockKajiriAPI(delay: .milliseconds(600), fails: false)
         )
+    }
+
+    /// Preview 用。Google をつないだ状態にして返す
+    static func previewGoogle(failure: GoogleCalendarError?) async -> CalendarUseCase {
+        let useCase = CalendarUseCase(
+            repository: MockCalendarRepository(access: .denied, events: []),
+            google: MockGoogleCalendarRepository(isAvailable: true, account: "kajiri@example.com", connectsAs: nil, events: CalendarEvent.previewWeek(now: .now), failure: failure),
+            api: MockKajiriAPI(delay: .milliseconds(600), fails: false)
+        )
+        await useCase.refreshGoogle(now: .now)
+        return useCase
     }
 }
 #endif

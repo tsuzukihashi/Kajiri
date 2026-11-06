@@ -14,7 +14,7 @@ struct DayPlannerTests {
         let start = at(hour, minute)
         return CalendarEvent(
             id: title, eventIdentifier: title, title: title, start: start, end: start.addingTimeInterval(Double(minutes * 60)),
-            isAllDay: false, location: "", calendarTitle: "", red: 0, green: 0, blue: 0
+            isAllDay: false, location: "", calendarTitle: "", red: 0, green: 0, blue: 0, source: .device
         )
     }
 

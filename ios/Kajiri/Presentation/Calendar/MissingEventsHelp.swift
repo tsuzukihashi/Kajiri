@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// 月の表示の下。Google カレンダーのアプリだけを使っていて、iPhone の設定に Google アカウントを
-/// 入れていない人には、Kajiri から予定が見えない（Kajiri は iPhone のカレンダーに入っている予定だけを読む）。
-/// その足し方を、押したときだけ開いて見せる
+/// 月の表示の下。Outlook や会社のカレンダーは、iPhone の設定にアカウントを入れないと Kajiri から見えない
+/// （Kajiri が直接読めるのは Google だけ）。その足し方を、押したときだけ開いて見せる
 struct MissingEventsHelp: View {
     @State private var isOpen = false
 
@@ -12,7 +11,7 @@ struct MissingEventsHelp: View {
                 withAnimation(.snappy) { isOpen.toggle() }
             } label: {
                 HStack {
-                    Label("Google カレンダーの予定が出ないとき", systemImage: "questionmark.circle")
+                    Label("Outlook や会社の予定が出ないとき", systemImage: "questionmark.circle")
                         .font(.system(size: 14, weight: .bold))
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -28,17 +27,13 @@ struct MissingEventsHelp: View {
 
             if isOpen {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Kajiri は、iPhone のカレンダーに入っている予定を読みます。Google カレンダーのアプリだけで見ている予定は、iPhone に Google アカウントを足すと並びます。")
+                    Text("Kajiri は、iPhone のカレンダーに入っている予定と、つないだ Google カレンダーの予定を読みます。ほかのカレンダーは、iPhone にアカウントを足すと並びます。")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.sub)
                     step(1, "iPhone の「設定」を開く")
                     step(2, "「アプリ」→「カレンダー」→「カレンダーアカウント」")
-                    step(3, "「アカウントを追加」→「Google」でログインする")
+                    step(3, "「アカウントを追加」→ 使っているサービスでログインする")
                     step(4, "「カレンダー」をオンにする")
-                    Text("Outlook や会社のアカウントも、同じところから足せます。")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Theme.sub)
-                        .padding(.top, 2)
                 }
                 .padding(.bottom, 12)
                 .transition(.opacity)

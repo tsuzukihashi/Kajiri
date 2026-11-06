@@ -108,7 +108,8 @@ final class EventKitCalendarRepository: CalendarRepositoryProtocol {
             isAllDay: event.isAllDay,
             location: event.location ?? "",
             calendarTitle: event.calendar?.title ?? "",
-            red: Double(red), green: Double(green), blue: Double(blue)
+            red: Double(red), green: Double(green), blue: Double(blue),
+            source: .device
         )
     }
 }

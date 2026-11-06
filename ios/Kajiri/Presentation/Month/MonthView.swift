@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// 月の予定。iPhone のカレンダーの予定と、丸太の締め切り・その日が期限の薪を並べる。
+/// 月の予定。iPhone のカレンダーとつないだ Google カレンダーの予定、丸太の締め切り・その日が期限の薪を並べる。
 /// ここから、カジリに準備が要りそうな予定を探してもらえる
 struct MonthView: View {
     @Environment(CalendarUseCase.self) private var calendar
@@ -21,7 +21,7 @@ struct MonthView: View {
             VStack(alignment: .leading, spacing: 16) {
                 MonthHeader(month: month, onMove: move)
                 // カジリならではの機能なので、月の表より先に置く（下に埋めると見つからない）
-                if calendar.access == .granted {
+                if calendar.canReadEvents {
                     PrepScanCard(
                         viewModel: scan,
                         linked: linkedEventIDs(),
@@ -29,7 +29,7 @@ struct MonthView: View {
                         onThrow: { pick in throwRequest = ThrowRequest(memo: pick.memo, sourceEventID: pick.eventID) }
                     )
                 }
-                if calendar.access != .granted {
+                if !calendar.canReadEvents {
                     CalendarConnectCard(access: calendar.access) {
                         Task { await calendar.requestAccess() }
                     }
@@ -54,6 +54,9 @@ struct MonthView: View {
                     onEventTap: { selectedEvent = $0 },
                     onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
                 )
+                if calendar.googleConnection != .unavailable {
+                    GoogleCalendarCard()
+                }
                 if calendar.access == .granted {
                     MissingEventsHelp()
                 }
@@ -65,6 +68,12 @@ struct MonthView: View {
         .background(Theme.ground)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        // 開いた月をまだ読んでいなければ Google から読む
+        .task(id: "\(JapanDate.dayString(month))|\(calendar.isGoogleConnected)") {
+            let weeks = MonthGrid.weeks(of: month)
+            guard let first = weeks.first?.first, let last = weeks.last?.last else { return }
+            await calendar.loadGoogle(from: first, to: JapanDate.addingDays(1, to: last))
+        }
         .sheet(item: $throwRequest) { request in
             ThrowSheet(request: request)
         }

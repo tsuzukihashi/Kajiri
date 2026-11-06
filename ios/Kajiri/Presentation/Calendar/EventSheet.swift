@@ -20,10 +20,7 @@ struct EventSheet: View {
                 } else {
                     prepCard
                 }
-                if calendar.access == .granted {
-                    Button("予定を直す") { editor = calendar.editorRequest(for: event) }
-                        .buttonStyle(SecondaryButtonStyle())
-                }
+                editControl
             }
             .padding(18)
         }
@@ -31,6 +28,23 @@ struct EventSheet: View {
         .sheet(item: $editor) { request in
             EventEditorView(request: request) { _ in editor = nil }
                 .ignoresSafeArea()
+        }
+    }
+
+    /// つないだ Google カレンダーの予定は読むだけなので、直すのは Google 側で
+    @ViewBuilder
+    private var editControl: some View {
+        switch event.source {
+        case .device:
+            if calendar.access == .granted {
+                Button("予定を直す") { editor = calendar.editorRequest(for: event) }
+                    .buttonStyle(SecondaryButtonStyle())
+            }
+        case .google(let link):
+            if let link {
+                Link("Google カレンダーで開く", destination: link)
+                    .buttonStyle(SecondaryButtonStyle())
+            }
         }
     }
 
@@ -107,13 +121,28 @@ private struct LinkedLogCard: View {
         .modelContainer(container)
 }
 
+#Preview("Google の予定") {
+    let (useCase, container) = LogUseCase.preview(filled: false)
+    let event = CalendarEvent.sample("打ち合わせ", day: .now, hour: 15, minute: 0, minutes: 60, location: "")
+    EventSheet(
+        event: CalendarEvent(
+            id: "google|main|1", eventIdentifier: "1", title: event.title, start: event.start, end: event.end,
+            isAllDay: false, location: "", calendarTitle: "仕事", red: 0.25, green: 0.47, blue: 0.85,
+            source: .google(link: URL(string: "https://calendar.google.com"))
+        )
+    ) {}
+    .environment(useCase)
+    .environment(CalendarUseCase.preview(access: .denied))
+    .modelContainer(container)
+}
+
 #Preview("丸太にした") {
     let (useCase, container) = LogUseCase.preview(filled: true)
     let event = CalendarEvent.sampleAllDay("引っ越し", day: .now)
     EventSheet(
         event: CalendarEvent(
             id: "preview-moving", eventIdentifier: "moving", title: event.title, start: event.start, end: event.end,
-            isAllDay: true, location: "", calendarTitle: "家", red: 0.3, green: 0.68, blue: 0.4
+            isAllDay: true, location: "", calendarTitle: "家", red: 0.3, green: 0.68, blue: 0.4, source: .device
         )
     ) {}
     .environment(useCase)

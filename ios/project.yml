@@ -27,6 +27,10 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     from: 12.0.0
+  # Apache-2.0。Google カレンダーを読むためのログインに使う
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 9.0.0
 
 targets:
   Kajiri:
@@ -45,6 +49,8 @@ targets:
         product: FirebaseFunctions
       - package: Firebase
         product: FirebaseAppCheck
+      - package: GoogleSignIn
+        product: GoogleSignIn
     info:
       path: Kajiri/Info.plist
       properties:
@@ -59,6 +65,10 @@ targets:
         NSCalendarsFullAccessUsageDescription: 予定を1日の線に並べ、予定のすき間に薪を置くために使います。予定はこの iPhone の中で読みます。「カジリに見てもらう」を押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        # Google カレンダーを読むログイン。値は Config/Local.xcconfig に書く（空なら、つなぐ画面が出ないだけ）
+        GIDClientID: $(GOOGLE_IOS_CLIENT_ID)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [$(GOOGLE_REVERSED_CLIENT_ID)]
     entitlements:
       path: Kajiri/Kajiri.entitlements
       properties:

@@ -1,2 +1,5 @@
 // このファイルを Local.xcconfig に写して値を入れる。Local.xcconfig は .gitignore 済み（コミットしない）。
 DEVELOPMENT_TEAM = YOURTEAMID
+// Google カレンダーをつなぐとき。GoogleService-Info.plist の CLIENT_ID と REVERSED_CLIENT_ID を書く（空なら、つなぐ画面が出ないだけ）
+GOOGLE_IOS_CLIENT_ID =
+GOOGLE_REVERSED_CLIENT_ID =

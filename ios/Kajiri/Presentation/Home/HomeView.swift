@@ -87,6 +87,7 @@ struct HomeView: View {
             // 設定でカレンダーを許可して戻ってきたとき
             if phase == .active {
                 calendar.refreshAccess()
+                Task { await calendar.refreshGoogle(now: AppClock.now) }
                 // 共有シートから投げられたメモがあれば、投げるシートに入れて開く
                 if throwRequest == nil, let memo = SharedInbox.pop() {
                     IntentInbox.shared.pendingThrow = memo
@@ -113,7 +114,7 @@ struct HomeView: View {
         let now = AppClock.now
         let isToday = JapanDate.isSameDay(selectedDay, now)
         let picks = TodayPicker.pick(from: steps, now: now, limit: TodayPicker.dailyCount + extraCount)
-        if logs.isEmpty && calendar.access != .granted {
+        if logs.isEmpty && !calendar.canReadEvents {
             HomeEmptyView(
                 access: calendar.access,
                 onThrow: { throwNew() },
@@ -151,7 +152,7 @@ struct HomeView: View {
                         onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
                     )
                     WeekStrip(selected: selectedDay, now: now, marks: weekMarks()) { selectedDay = $0 }
-                    if calendar.access != .granted {
+                    if !calendar.canReadEvents {
                         CalendarConnectCard(access: calendar.access) {
                             Task { await calendar.requestAccess() }
                         }

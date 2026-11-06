@@ -1,4 +1,6 @@
 // 公開してよい共通の設定。個人の値は Local.xcconfig（.gitignore 済み）で上書きする。
 DEVELOPMENT_TEAM =
+GOOGLE_IOS_CLIENT_ID =
+GOOGLE_REVERSED_CLIENT_ID =
 
 #include? "Local.xcconfig"

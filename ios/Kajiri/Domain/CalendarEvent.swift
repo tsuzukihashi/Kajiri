@@ -1,6 +1,14 @@
 import Foundation
 
-/// iPhone のカレンダーにある予定1件（Google・iCloud・Outlook など、設定に入れたカレンダー全部から読む）
+/// どこから読んだ予定か
+enum CalendarEventSource: Hashable, Sendable {
+    /// iPhone のカレンダー（設定に入れた Google・iCloud・Outlook など）。Kajiri から直せる
+    case device
+    /// Kajiri でつないだ Google カレンダー。読むだけなので、直すのは Google 側で
+    case google(link: URL?)
+}
+
+/// 予定1件
 struct CalendarEvent: Identifiable, Hashable, Sendable {
     /// 予定1回ぶんの名前（くり返しの予定は、回ごとに別の id になる）
     let id: String
@@ -16,6 +24,7 @@ struct CalendarEvent: Identifiable, Hashable, Sendable {
     let red: Double
     let green: Double
     let blue: Double
+    let source: CalendarEventSource
 
     var minutes: Int { max(0, Int(end.timeIntervalSince(start) / 60)) }
 
@@ -25,6 +34,16 @@ struct CalendarEvent: Identifiable, Hashable, Sendable {
         let dayEnd = JapanDate.addingDays(1, to: dayStart)
         return start < dayEnd && end > dayStart
     }
+}
+
+/// Google カレンダーとのつながり
+enum GoogleConnection: Equatable, Sendable {
+    /// このビルドに Google の設定が入っていない
+    case unavailable
+    case disconnected
+    case connected(account: String)
+    /// つなぎ直しが要る（許可を取り消された・ログインが切れた）
+    case expired
 }
 
 /// カレンダーを読んでよいか
@@ -49,7 +68,8 @@ extension CalendarEvent {
             isAllDay: false,
             location: location,
             calendarTitle: "仕事",
-            red: 0.25, green: 0.47, blue: 0.85
+            red: 0.25, green: 0.47, blue: 0.85,
+            source: .device
         )
     }
 
@@ -64,7 +84,8 @@ extension CalendarEvent {
             isAllDay: true,
             location: "",
             calendarTitle: "家",
-            red: 0.3, green: 0.68, blue: 0.4
+            red: 0.3, green: 0.68, blue: 0.4,
+            source: .device
         )
     }
 
