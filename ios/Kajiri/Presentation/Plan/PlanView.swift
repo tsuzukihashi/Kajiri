@@ -26,12 +26,16 @@ struct PlanView: View {
         let isToday = JapanDate.isSameDay(selectedDay, now)
         NavigationStack(path: $router.planPath) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                     WeekStrip(selected: selectedDay, now: now, marks: weekMarks()) { selectedDay = $0 }
+                        .padding(.vertical, 12)
+                        .background(.white, in: .rect(cornerRadius: 22))
+                        .padding(.horizontal, 18)
                     if !calendar.canReadEvents {
                         CalendarConnectCard(access: calendar.access) {
                             Task { await calendar.requestAccess() }
                         }
+                        .padding(.horizontal, 18)
                     }
                     dayContent(now: now, isToday: isToday)
                 }
@@ -72,23 +76,48 @@ struct PlanView: View {
     private func dayContent(now: Date, isToday: Bool) -> some View {
         let events = calendar.events(on: selectedDay)
         let picks = TodayPicker.pick(from: steps, now: now, limit: TodayPicker.dailyCount)
-        DayBannerRow(
-            allDay: events.filter(\.isAllDay),
-            deadlines: deadlines(on: selectedDay),
-            onEventTap: { selectedEvent = $0 }
-        )
-        if calendar.canReadEvents || isToday {
-            HomeTimeline(
-                items: DayPlanner.plan(day: selectedDay, now: now, events: events, steps: isToday ? picks.open : []),
-                now: now,
-                isToday: isToday,
-                doneSteps: isToday ? picks.done : [],
-                kajiriSteps: [],
-                hasLogs: !logs.isEmpty,
-                onEventTap: { selectedEvent = $0 },
-                onThrow: { router.throwNew() }
-            )
+        let items = DayPlanner.plan(day: selectedDay, now: now, events: events, steps: isToday ? picks.open : [])
+        let deadlines = deadlines(on: selectedDay)
+        if calendar.canReadEvents || isToday || !deadlines.isEmpty {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(isToday ? "今日の流れ" : "この日の流れ")
+                        .font(.system(size: 18, weight: .black))
+                    Text(summary(items: items, events: events))
+                        .font(.system(size: 13, weight: .heavy))
+                        .foregroundStyle(Theme.sub)
+                }
+                .padding(.horizontal, 22)
+                DayBannerRow(
+                    allDay: events.filter(\.isAllDay),
+                    deadlines: deadlines,
+                    onEventTap: { selectedEvent = $0 }
+                )
+                if calendar.canReadEvents || isToday {
+                    HomeTimeline(
+                        items: items,
+                        now: now,
+                        isToday: isToday,
+                        doneSteps: isToday ? picks.done : [],
+                        kajiriSteps: [],
+                        hasLogs: !logs.isEmpty,
+                        onEventTap: { selectedEvent = $0 },
+                        onThrow: { router.throwNew() }
+                    )
+                    .padding(.top, 4)
+                }
+            }
         }
+    }
+
+    /// 「予定 2件・空き 5時間」
+    private func summary(items: [DayPlanner.Item], events: [CalendarEvent]) -> String {
+        let timed = events.filter { !$0.isAllDay }.count
+        let free = items.reduce(0) { total, item in
+            if case let .free(slot, _, _) = item, !slot.isOverflow { return total + slot.minutes }
+            return total
+        }
+        return String(localized: "予定 \(timed)件・空き \(FreeTimeHint.duration(free))")
     }
 
     @ToolbarContentBuilder

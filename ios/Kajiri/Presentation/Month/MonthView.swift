@@ -17,7 +17,7 @@ struct MonthView: View {
         @Bindable var router = router
         let now = AppClock.now
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 MonthHeader(month: month, onMove: move)
                 if !calendar.canReadEvents {
                     CalendarConnectCard(access: calendar.access) {
@@ -33,6 +33,8 @@ struct MonthView: View {
                     deadlineDays: Set(openDeadlineLogs().compactMap { $0.deadline.map(JapanDate.dayString) }),
                     onSelect: { selectedDay = $0 }
                 )
+                .padding(12)
+                .background(.white, in: .rect(cornerRadius: 22))
                 MonthDayList(
                     day: selectedDay,
                     events: calendar.events(on: selectedDay),

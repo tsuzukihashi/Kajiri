@@ -13,16 +13,16 @@ struct TimelineAnchorRow: View {
                 .foregroundStyle(Theme.sub)
                 .frame(width: 50, alignment: .trailing)
             Image(systemName: symbol)
-                .font(.system(size: 15))
+                .font(.system(size: 14))
                 .foregroundStyle(Theme.sub)
                 .frame(width: 34, height: 34)
-                .background(Theme.card, in: .circle)
+                .background(Theme.ground, in: .circle)
+            // 起床・就寝は1日の端の目印なので、予定や空き時間より控えめに（箱に入れない）
             Text(title)
-                .font(.system(size: 14, weight: .bold))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Theme.sub)
+                .padding(.horizontal, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.card, in: .rect(cornerRadius: 16))
         }
     }
 }

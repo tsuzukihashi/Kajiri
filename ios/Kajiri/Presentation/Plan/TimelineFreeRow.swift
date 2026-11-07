@@ -41,8 +41,9 @@ struct TimelineFreeRow: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.freeTime, in: .rect(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(red: 0.81, green: 0.81, blue: 0.84)))
+            // 空き時間は「何も入っていない時間」なので、予定（白い箱）と違って点線の枠で見せる
+            .background(Theme.freeTime.opacity(0.5), in: .rect(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.sub.opacity(0.45), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])))
         }
     }
 

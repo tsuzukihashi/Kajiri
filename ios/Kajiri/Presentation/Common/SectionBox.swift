@@ -3,15 +3,28 @@ import SwiftUI
 /// ひとまとまりの情報。見出しを箱の外に置き、中身は白い箱に入れて、行と行は線で分ける。
 /// 行どうしは詰め、まとまりどうしは大きく空ける（`Theme.sectionSpacing`）ことで、どこからどこまでが1つかを見せる
 struct SectionBox<Content: View>: View {
-    let title: LocalizedStringKey
+    let title: Text
     /// 見出しの右に添える数や状態（「1/3」など）
     let detail: String?
-    @ViewBuilder let content: Content
+    let content: Content
+
+    init(title: LocalizedStringKey, detail: String?, @ViewBuilder content: () -> Content) {
+        self.title = Text(title)
+        self.detail = detail
+        self.content = content()
+    }
+
+    /// 日付など、組み立てた見出しを使うとき
+    init(titleText: Text, detail: String?, @ViewBuilder content: () -> Content) {
+        self.title = titleText
+        self.detail = detail
+        self.content = content()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(title)
+                title
                     .font(.system(size: 18, weight: .black))
                     .foregroundStyle(Theme.ink)
                 if let detail {
