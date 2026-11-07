@@ -127,7 +127,7 @@ enum StepOwner: String, CaseIterable, Sendable {
         switch self {
         case .me: String(localized: "じぶん")
         case .kajiri: String(localized: "カジリ")
-        case .other: String(localized: "仲間に頼む")
+        case .other: String(localized: "頼む")
         case .wait: String(localized: "待ち")
         }
     }
@@ -142,10 +142,10 @@ enum Quadrant: String, CaseIterable, Sendable {
 
     var label: String {
         switch self {
-        case .today: String(localized: "今日かじる")
-        case .stock: String(localized: "貯めておく")
-        case .handoff: String(localized: "運んでもらう")
-        case .drop: String(localized: "川に流す")
+        case .today: String(localized: "今日やる")
+        case .stock: String(localized: "あとでやる")
+        case .handoff: String(localized: "任せる")
+        case .drop: String(localized: "やらない")
         }
     }
 
@@ -153,8 +153,8 @@ enum Quadrant: String, CaseIterable, Sendable {
         switch self {
         case .today: String(localized: "急ぐし、大事")
         case .stock: String(localized: "空き時間に、カジリが置く")
-        case .handoff: String(localized: "カジリか仲間がやる")
-        case .drop: String(localized: "やらなくていい。下流に残しておく")
+        case .handoff: String(localized: "カジリか、だれかがやる")
+        case .drop: String(localized: "やらなくていい。消さずに残しておく")
         }
     }
 }

@@ -34,7 +34,7 @@ struct KajiriApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            RootView()
                 .environment(useCase)
                 .environment(calendar)
                 .onOpenURL { GoogleCalendarRepository.handle($0) }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// まだ丸太が1本も無いとき。カジリが「投げて」と待っている
-struct HomeEmptyView: View {
+struct TodayStartPanel: View {
     let access: CalendarAccess
     let onThrow: () -> Void
     let onConnect: () -> Void
@@ -37,11 +37,11 @@ struct HomeEmptyView: View {
 }
 
 #Preview("カレンダーをまだ聞いていない") {
-    HomeEmptyView(access: .notDetermined, onThrow: {}, onConnect: {})
+    TodayStartPanel(access: .notDetermined, onThrow: {}, onConnect: {})
         .background(Theme.ground)
 }
 
 #Preview("カレンダーは断られた") {
-    HomeEmptyView(access: .denied, onThrow: {}, onConnect: {})
+    TodayStartPanel(access: .denied, onThrow: {}, onConnect: {})
         .background(Theme.ground)
 }

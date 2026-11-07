@@ -55,7 +55,7 @@ struct KajiriChip: View {
     private var label: String {
         switch step.workState {
         case .idle, .working: String(localized: "カジリが進行中: \(step.title)")
-        case .ready: String(localized: "カジリが運んできた: \(step.title)")
+        case .ready: String(localized: "カジリから届いた: \(step.title)")
         case .failed: String(localized: "カジリがつまずいた: \(step.title)")
         }
     }

@@ -61,11 +61,11 @@ struct LaterSheet: View {
                 useCase.postpone(step, now: AppClock.now)
                 onClose(true)
             }
-            ReasonButton(title: "気が乗らない・頼みたい", detail: "仲間に頼む側へ回す", symbol: "person.2") {
+            ReasonButton(title: "気が乗らない・頼みたい", detail: "だれかに頼む側へ回す", symbol: "person.2") {
                 useCase.handOff(step)
                 onClose(true)
             }
-            ReasonButton(title: "やらなくていい", detail: "川に流す（下流に残しておく）", symbol: "water.waves") {
+            ReasonButton(title: "やらなくていい", detail: "やらないにする（消さずに残す）", symbol: "xmark.circle") {
                 useCase.drop(step)
                 onClose(true)
             }

@@ -99,7 +99,7 @@ struct TimelineFreeRow: View {
                 .buttonStyle(.plain)
             }
         } else if steps.isEmpty && kajiriSteps.isEmpty {
-            Text("いま、じぶんの番の薪はありません。カジリと仲間の番です。")
+            Text("いま、じぶんの番の薪はありません。")
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.sub)
         }

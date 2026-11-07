@@ -52,7 +52,7 @@ struct WeeklySheet: View {
                 Text("本").font(.system(size: 14, weight: .bold))
                 Spacer()
                 if summary.kajiriDone > 0 {
-                    Text("カジリが運んだ分 \(summary.kajiriDone)本")
+                    Text("カジリが作った分 \(summary.kajiriDone)本")
                         .font(.system(size: 12, weight: .heavy))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)

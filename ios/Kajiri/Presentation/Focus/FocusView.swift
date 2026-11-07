@@ -71,11 +71,6 @@ struct FocusCard: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(Theme.ink, in: .capsule)
-                Text(step.quadrant.label)
-                    .font(.system(size: 12, weight: .bold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Theme.chip, in: .capsule)
                 if step.needsComputer {
                     Label("パソコン", systemImage: "laptopcomputer")
                         .font(.system(size: 12, weight: .bold))

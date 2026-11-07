@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// カジリが運んできたもの（下書き・調べもの・一覧）を受け取る。見て、押すだけ
+/// カジリから届いたもの（下書き・調べもの・一覧）を受け取る。見て、押すだけ
 struct HandoffView: View {
     let stepID: UUID
 
@@ -86,7 +86,7 @@ struct HandoffView: View {
                         .background(Theme.chip, in: .rect(cornerRadius: 14))
                 }
             }
-            Button("受け取った（済みにする）") {
+            Button("受け取った") {
                 useCase.complete(step, now: AppClock.now)
                 dismiss()
             }

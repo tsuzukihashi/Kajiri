@@ -56,7 +56,7 @@ enum NotificationPlanner {
         if !reviewWeek.isEmpty || logs.contains(where: { !$0.isFinished }) {
             items.append(Item(
                 id: "kajiri.weekly",
-                title: String(localized: "先週のダムを見に行こう"),
+                title: String(localized: "先週のふりかえりを見に行こう"),
                 body: String(localized: "カジリが、よかったところと次の一歩を書いて待ってる。"),
                 fireAt: nextMonday
             ))

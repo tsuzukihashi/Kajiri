@@ -1,37 +1,27 @@
 import SwiftData
 import SwiftUI
 
-/// 川辺の地図（タスク管理の4象限）。カジリが、急ぎか・大事かで薪を置き分けた
-struct MatrixView: View {
+/// 4象限（急ぐか × 大事か）。カジリが薪を置き分けたもの。薪を押すと、その薪の画面へ
+struct MatrixBoard: View {
     @Query(sort: \Step.order) private var steps: [Step]
 
     var body: some View {
         let open = steps.filter { !$0.isDone }
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("川辺の地図").font(.system(size: 28, weight: .black))
-                    Text("急ぎか・大事かで、カジリが置き分けた").font(.system(size: 13)).foregroundStyle(Theme.sub)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("急ぐか・大事かで、カジリが置き分けました。締め切りが近づいた薪は「今日やる」へ動きます。")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.sub)
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                GridRow {
+                    QuadrantBox(quadrant: .today, steps: open.filter { $0.quadrant == .today }, isDark: true)
+                    QuadrantBox(quadrant: .stock, steps: open.filter { $0.quadrant == .stock }, isDark: false)
                 }
-                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                    GridRow {
-                        QuadrantBox(quadrant: .today, steps: open.filter { $0.quadrant == .today }, isDark: true)
-                        QuadrantBox(quadrant: .stock, steps: open.filter { $0.quadrant == .stock }, isDark: false)
-                    }
-                    GridRow {
-                        QuadrantBox(quadrant: .handoff, steps: open.filter { $0.quadrant == .handoff }, isDark: false)
-                        QuadrantBox(quadrant: .drop, steps: open.filter { $0.quadrant == .drop }, isDark: false)
-                    }
+                GridRow {
+                    QuadrantBox(quadrant: .handoff, steps: open.filter { $0.quadrant == .handoff }, isDark: false)
+                    QuadrantBox(quadrant: .drop, steps: open.filter { $0.quadrant == .drop }, isDark: false)
                 }
-                Text("締め切りが近づいた薪は「今日かじる」へ動きます。")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.sub)
             }
-            .padding(16)
         }
-        .background(Theme.ground)
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -55,8 +45,7 @@ private struct QuadrantBox: View {
                 Text("いまは空っぽ").font(.system(size: 12)).foregroundStyle(isDark ? Color(white: 0.7) : Theme.sub)
             }
             ForEach(steps.prefix(6)) { step in
-                // 薪を押すと、その薪の画面へ（カジリの番は受け取る画面、それ以外は「この1本だけ」）
-                NavigationLink(value: step.owner == .kajiri ? Route.handoff(step.uuid) : Route.focus(step.uuid)) {
+                NavigationLink(value: Route.step(step)) {
                     Text(step.title)
                         .font(.system(size: 12, weight: .bold))
                         .multilineTextAlignment(.leading)
@@ -90,11 +79,11 @@ private struct QuadrantBox: View {
 #if DEBUG
 #Preview("薪がある") {
     let (_, container) = LogUseCase.preview(filled: true)
-    NavigationStack { MatrixView() }.modelContainer(container)
+    NavigationStack { ScrollView { MatrixBoard().padding() } }.modelContainer(container)
 }
 
 #Preview("空") {
     let (_, container) = LogUseCase.preview(filled: false)
-    NavigationStack { MatrixView() }.modelContainer(container)
+    NavigationStack { ScrollView { MatrixBoard().padding() } }.modelContainer(container)
 }
 #endif
