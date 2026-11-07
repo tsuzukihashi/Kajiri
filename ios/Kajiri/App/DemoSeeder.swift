@@ -4,7 +4,7 @@ import Foundation
 
 /// 確かめる・デモを撮るとき用（DEBUG ビルドで、起動引数 -seedDemo を付けたときだけ）。
 /// シミュレータのカレンダーに、今日から1週間ぶんの見本の予定を入れる。
-/// 入れた予定はメモに印を付けておき、2回目からは入れない。App Store 版には入らない。
+/// 入れた予定はメモに印を付けておき、今日の分があれば入れない。App Store 版には入らない。
 @MainActor
 enum DemoSeeder {
     static let mark = "kajiri-demo"
@@ -17,8 +17,13 @@ enum DemoSeeder {
         }
         guard granted, let calendar = store.defaultCalendarForNewEvents else { return }
         let today = JapanDate.startOfDay(.now)
-        let range = store.predicateForEvents(withStart: today, end: JapanDate.addingDays(14, to: today), calendars: nil)
-        guard !store.events(matching: range).contains(where: { $0.notes == mark }) else { return }
+        // 今日の見本がもうあれば、入れない。前の日に入れた見本しか無ければ、消してから今日を起点に入れ直す
+        let todayRange = store.predicateForEvents(withStart: today, end: JapanDate.addingDays(1, to: today), calendars: nil)
+        guard !store.events(matching: todayRange).contains(where: { $0.notes == mark }) else { return }
+        let oldRange = store.predicateForEvents(withStart: JapanDate.addingDays(-30, to: today), end: JapanDate.addingDays(30, to: today), calendars: nil)
+        for old in store.events(matching: oldRange) where old.notes == mark {
+            try? store.remove(old, span: .thisEvent, commit: false)
+        }
 
         let samples: [(day: Int, hour: Int, minute: Int, minutes: Int, title: String, location: String)] = [
             (0, 9, 30, 30, "朝会", ""),
