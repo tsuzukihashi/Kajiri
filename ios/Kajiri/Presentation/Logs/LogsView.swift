@@ -145,7 +145,12 @@ struct LogRow: View {
     static func turnLabel(_ step: Step) -> String {
         switch step.owner {
         case .me: String(localized: "次はじぶん")
-        case .kajiri: String(localized: "カジリが作業中")
+        case .kajiri:
+            switch step.workState {
+            case .ready: String(localized: "カジリから届いた")
+            case .failed: String(localized: "カジリがつまずいた")
+            case .idle, .working: String(localized: "カジリが作業中")
+            }
         case .other: String(localized: "頼む")
         case .wait: String(localized: "待ち")
         }

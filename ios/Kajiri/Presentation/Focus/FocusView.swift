@@ -17,6 +17,8 @@ struct FocusView: View {
             }
         }
         .background(Theme.ground)
+        // 薪1本だけを見せる画面なので、タブも隠す
+        .toolbar(.hidden, for: .tabBar)
     }
 
     private func content(_ step: Step) -> some View {
