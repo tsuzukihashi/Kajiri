@@ -34,10 +34,10 @@ final class ScreenshotTests: XCTestCase {
         snapshot("01_split")
         app.terminate()
 
-        // 2. 予定のすき間に、今日の3本
+        // 2. 今日のタブは、いまの1本が主役
         app = launch([])
-        require(app.staticTexts["スライドの見出しを3つ書く"], "今日の薪")
-        snapshot("02_home")
+        require(app.staticTexts["はじめる"], "いまの1本")
+        snapshot("02_today")
         app.terminate()
 
         // 3. 下書きと調べものは、カジリが同時に
@@ -52,22 +52,28 @@ final class ScreenshotTests: XCTestCase {
         snapshot("04_focus")
         app.terminate()
 
-        // 5. 予定から、準備が要るものに気づく
+        // 5. 予定のすき間に、今日の薪
+        app = launch(["-storeShot", "plan"])
+        require(app.staticTexts["今日の流れ"], "今日の流れ")
+        snapshot("05_plan")
+        app.terminate()
+
+        // 6. 予定から、準備が要るものに気づく
         app = launch(["-storeShot", "month"])
         let scan = app.buttons["カジリに見てもらう"]
         require(scan, "カジリに見てもらう")
         scan.tap()
         require(app.buttons["この準備をかじってもらう"].firstMatch, "準備が要りそうな予定")
-        snapshot("05_month")
+        snapshot("06_prep")
         app.terminate()
 
-        // 6. 週のふりかえり
+        // 7. 週のふりかえり
         app = launch(["-storeShot", "weekly"])
         let review = app.buttons["カジリにふりかえってもらう"]
         require(review, "カジリにふりかえってもらう")
         review.tap()
         require(app.staticTexts["毎日ひとかじり。それで山は小さくなる。"], "ふりかえり")
-        snapshot("06_weekly")
+        snapshot("07_weekly")
         app.terminate()
     }
 }

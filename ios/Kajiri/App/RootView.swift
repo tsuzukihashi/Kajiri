@@ -69,7 +69,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
-    /// - -storeShot focus|handoff|month|matrix|weekly: その画面を直接開く
+    /// - -storeShot focus|handoff|plan|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {
         if let shot = StoreShots.shot {
@@ -83,6 +83,8 @@ struct RootView: View {
                 if let step = steps.first(where: { $0.owner == .kajiri && $0.workState == .ready && $0.title.contains("要点") }) {
                     router.todayPath = [.handoff(step.uuid)]
                 }
+            case "plan":
+                router.tab = .plan
             case "month":
                 router.tab = .plan
                 PlanView.opensPrepScanOnAppear = true
