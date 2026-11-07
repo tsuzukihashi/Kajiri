@@ -42,9 +42,8 @@ struct LogDetailView: View {
         let done = steps.filter(\.isDone)
         let dropped = steps.filter { !$0.isDone && $0.quadrant == .drop }
         return ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                LogHeader(log: log)
-                deadlineControl(log)
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+                LogHeader(log: log) { deadlineControl(log) }
                 if !mine.isEmpty {
                     StepSection(title: "じぶんの薪", steps: mine, isLink: true)
                 }
@@ -58,21 +57,22 @@ struct LogDetailView: View {
                     StepSection(title: "片づいた", steps: done, isLink: false)
                 }
                 if !dropped.isEmpty {
-                    StepSection(title: "やらない（消さずに残しています）", steps: dropped, isLink: true)
+                    StepSection(title: "やらない", steps: dropped, isLink: true)
                 }
                 if !log.memo.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("投げたメモ").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
+                    SectionBox(title: "投げたメモ", detail: nil) {
                         Text(log.memo)
                             .font(.system(size: 14))
+                            .foregroundStyle(Theme.ink)
                             .textSelection(.enabled)
                             .padding(14)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Theme.card, in: .rect(cornerRadius: 14))
                     }
                 }
             }
-            .padding(18)
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 40)
         }
     }
 
@@ -96,15 +96,16 @@ struct LogDetailView: View {
     }
 }
 
-/// 丸太の名前・締め切り・なぜやるか・進み具合
-private struct LogHeader: View {
+/// 丸太の名前・締め切り・なぜやるか・進み具合。この画面の主役なので、1つの白い箱にまとめる
+private struct LogHeader<Accessory: View>: View {
     let log: Log
+    @ViewBuilder let accessory: Accessory
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let total = log.steps.filter { $0.quadrant != .drop }.count
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top, spacing: 12) {
-                KajiriImage(pose: log.isFinished ? .dam : .gnaw, size: 64)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     if let deadline = log.deadline {
                         Text("\(deadline, format: .dateTime.month().day().weekday())まで")
                             .font(.system(size: 12, weight: .heavy))
@@ -112,23 +113,38 @@ private struct LogHeader: View {
                             .padding(.vertical, 4)
                             .background(Theme.amber, in: .capsule)
                     }
-                    Text(log.title).font(.system(size: 24, weight: .black))
-                    if !log.kajiriComment.isEmpty {
-                        Text(log.kajiriComment).font(.system(size: 13)).foregroundStyle(Theme.sub)
-                    }
+                    Text(log.title)
+                        .font(.system(size: 26, weight: .black))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                Spacer(minLength: 0)
+                KajiriImage(pose: log.isFinished ? .dam : .gnaw, size: 72)
             }
-            ProgressPips(total: log.steps.filter { $0.quadrant != .drop }.count, done: log.doneCount)
+            if !log.kajiriComment.isEmpty {
+                Text(log.kajiriComment)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Theme.ink)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("\(log.doneCount)").font(.system(size: 22, weight: .black))
+                    Text("/ \(total)本 片づいた").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
+                }
+                ProgressPips(total: total, done: log.doneCount)
+            }
             if !log.why.isEmpty {
                 Label(log.why, systemImage: "sparkles")
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.sub)
             }
+            accessory
         }
+        .padding(18)
+        .background(.white, in: .rect(cornerRadius: 24))
     }
 }
 
-/// 見出しと薪の行の並び
+/// 見出しと薪の行を、1つの箱にまとめる
 private struct StepSection: View {
     let title: LocalizedStringKey
     let steps: [Step]
@@ -136,9 +152,8 @@ private struct StepSection: View {
     let isLink: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
-            ForEach(steps) { step in
+        SectionBox(title: title, detail: String(localized: "\(steps.count)本")) {
+            BoxRows(items: steps) { step in
                 if isLink {
                     NavigationLink(value: Route.step(step)) { row(step) }
                         .buttonStyle(.plain)
@@ -152,20 +167,9 @@ private struct StepSection: View {
     @ViewBuilder
     private func row(_ step: Step) -> some View {
         if step.owner == .other || step.owner == .wait {
-            HStack(spacing: 10) {
-                Image(systemName: step.owner == .wait ? "hourglass" : "person.2").frame(width: 22)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(step.title).font(.system(size: 15, weight: .bold))
-                    if let who = step.askWho, !who.isEmpty {
-                        Text(who).font(.system(size: 12)).foregroundStyle(Theme.sub)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(12)
-            .background(Theme.card, in: .rect(cornerRadius: 14))
+            WaitingStepRow(step: step)
         } else {
-            StepLine(step: step)
+            StepLine(step: step, showsChevron: isLink)
         }
     }
 }

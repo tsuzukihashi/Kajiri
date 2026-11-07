@@ -11,7 +11,7 @@ struct TodayNextPanel: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                     if let first = picks.open.first {
                         NextStepCard(step: first, remaining: picks.open.count, hint: hint)
                     }
@@ -24,7 +24,7 @@ struct TodayNextPanel: View {
                 }
                 .padding(.horizontal, 18)
                 .padding(.top, 8)
-                .padding(.bottom, 100)
+                .padding(.bottom, 110)
             }
             ThrowButton(action: onThrow)
         }
@@ -105,59 +105,57 @@ struct NextStepCard: View {
     }
 }
 
-/// いまの1本のあとに控えている薪と、今日片づけた薪
+/// 今日の薪のうち、いまの1本のあとに控えている薪と、今日片づけた薪。1つの箱にまとめる
 struct TodayRestList: View {
     let rest: [Step]
     let done: [Step]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !rest.isEmpty {
-                Text("このあと")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.sub)
-                ForEach(rest) { step in
-                    NavigationLink(value: Route.focus(step.uuid)) {
-                        StepLine(step: step)
-                    }
-                    .buttonStyle(.plain)
+        let total = rest.count + done.count + 1
+        SectionBox(title: "今日の薪", detail: String(localized: "\(done.count)/\(total) 片づけた")) {
+            BoxRows(items: rest) { step in
+                NavigationLink(value: Route.focus(step.uuid)) {
+                    StepLine(step: step, showsChevron: true)
                 }
+                .buttonStyle(.plain)
             }
-            if !done.isEmpty {
-                Text("今日 片づけた \(done.count)本")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Theme.sub)
-                    .padding(.top, rest.isEmpty ? 0 : 6)
-                ForEach(done) { step in
-                    StepLine(step: step)
-                }
+            if !rest.isEmpty && !done.isEmpty { BoxDivider() }
+            BoxRows(items: done) { step in
+                StepLine(step: step, showsChevron: false)
             }
         }
     }
 }
 
-/// 薪の1行（丸や線で、済んだかどうかが分かる）
+/// 薪の1行（丸や線で、済んだかどうかが分かる）。箱の中に置く
 struct StepLine: View {
     let step: Step
+    let showsChevron: Bool
 
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: step.isDone ? "checkmark.circle.fill" : "circle")
-                .font(.system(size: 18))
-                .foregroundStyle(step.isDone ? Theme.ink : Theme.sub)
+                .font(.system(size: 20))
+                .foregroundStyle(step.isDone ? Theme.sub : Theme.ink)
+                .frame(width: 26)
             Text(step.title)
-                .font(.system(size: 15, weight: .bold))
+                .font(.system(size: 15, weight: step.isDone ? .regular : .bold))
                 .strikethrough(step.isDone)
                 .foregroundStyle(step.isDone ? Theme.sub : Theme.ink)
                 .multilineTextAlignment(.leading)
             Spacer(minLength: 8)
             Text("\(step.minutes)分")
-                .font(.system(size: 12))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(Theme.sub)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Theme.line)
+            }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Theme.card, in: .rect(cornerRadius: 14))
+        .padding(.vertical, 14)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }

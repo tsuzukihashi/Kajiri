@@ -24,7 +24,7 @@ struct TodayDonePanel: View {
                 if inbox.contains(where: { $0.workState == .ready || $0.workState == .failed }) {
                     KajiriInboxCard(steps: inbox)
                         .padding(.horizontal, 18)
-                        .padding(.top, 10)
+                        .padding(.top, Theme.sectionSpacing)
                 }
             }
             .padding(.bottom, 16)
@@ -65,7 +65,7 @@ private struct DoneCountCard: View {
         }
         .foregroundStyle(Theme.ink)
         .padding(16)
-        .background(Theme.card, in: .rect(cornerRadius: 20))
+        .background(.white, in: .rect(cornerRadius: 20))
         .padding(.horizontal, 18)
         .padding(.top, 10)
     }

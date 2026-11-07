@@ -22,7 +22,7 @@ struct LogsView: View {
         NavigationStack(path: $router.logsPath) {
             ZStack(alignment: .bottomTrailing) {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 16) {
                         Picker("見かた", selection: $layout) {
                             Text("丸太ごと").tag(Layout.logs)
                             Text("4象限").tag(Layout.matrix)
@@ -33,7 +33,7 @@ struct LogsView: View {
                         case .matrix: MatrixBoard()
                         }
                         AboutLinks()
-                            .padding(.top, 24)
+                            .padding(.top, Theme.sectionSpacing)
                     }
                     .padding(.horizontal, 18)
                     .padding(.top, 4)
@@ -77,18 +77,31 @@ struct LogsView: View {
             }
             .padding(.top, 20)
         }
-        ForEach(open) { log in
-            NavigationLink(value: Route.log(log.uuid)) {
-                LogRow(log: log)
+        VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+            if !open.isEmpty {
+                LogGroup(title: "進めている", logs: open)
             }
-            .buttonStyle(.plain)
+            if !finished.isEmpty {
+                LogGroup(title: "片づいた", logs: finished)
+            }
         }
-        if !finished.isEmpty {
-            Text("片づいた丸太")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Theme.sub)
-                .padding(.top, 10)
-            ForEach(finished) { log in
+        .padding(.top, 8)
+    }
+}
+
+/// 見出しと、丸太のカードの並び。丸太は1本ずつが物なので、カードを分けて並べる
+private struct LogGroup: View {
+    let title: LocalizedStringKey
+    let logs: [Log]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(title).font(.system(size: 18, weight: .black))
+                Text("\(logs.count)本").font(.system(size: 13, weight: .heavy)).foregroundStyle(Theme.sub)
+            }
+            .padding(.horizontal, 4)
+            ForEach(logs) { log in
                 NavigationLink(value: Route.log(log.uuid)) {
                     LogRow(log: log)
                 }
@@ -138,7 +151,7 @@ struct LogRow: View {
         }
         .foregroundStyle(Theme.ink)
         .padding(16)
-        .background(Theme.card, in: .rect(cornerRadius: 20))
+        .background(.white, in: .rect(cornerRadius: 20))
         .accessibilityElement(children: .combine)
     }
 

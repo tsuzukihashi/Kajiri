@@ -11,6 +11,8 @@ enum Theme {
     static let freeTime = Color(red: 0xE2 / 255, green: 0xE2 / 255, blue: 0xE7 / 255)
     static let amber = Color(red: 0xF5 / 255, green: 0xB8 / 255, blue: 0x3D / 255)
     static let amberSoft = Color(red: 0xFC / 255, green: 0xEB / 255, blue: 0xC6 / 255)
+    /// まとまりとまとまりの間。行どうし（0〜10）よりはっきり大きく空ける
+    static let sectionSpacing: CGFloat = 30
 }
 
 /// カジリの絵（ChatGPT の Image で作った、絵本の水彩の絵）

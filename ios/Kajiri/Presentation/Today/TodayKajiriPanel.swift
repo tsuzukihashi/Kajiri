@@ -12,7 +12,7 @@ struct TodayKajiriPanel: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                     VStack(spacing: 6) {
                         KajiriImage(pose: .gnaw, size: 150)
                         Text("いま、じぶんの番の薪はありません")
@@ -32,7 +32,7 @@ struct TodayKajiriPanel: View {
                     }
                 }
                 .padding(.horizontal, 18)
-                .padding(.bottom, 100)
+                .padding(.bottom, 110)
             }
             ThrowButton(action: onThrow)
         }
@@ -51,26 +51,42 @@ private struct WaitingList: View {
     let steps: [Step]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("頼んだ・待っている")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(Theme.sub)
-            ForEach(steps) { step in
-                HStack(spacing: 10) {
-                    Image(systemName: step.owner == .wait ? "hourglass" : "person.2")
-                        .frame(width: 22)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(step.title).font(.system(size: 15, weight: .bold))
-                        if let who = step.askWho, !who.isEmpty {
-                            Text(who).font(.system(size: 12)).foregroundStyle(Theme.sub)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                }
-                .padding(12)
-                .background(Theme.card, in: .rect(cornerRadius: 14))
+        SectionBox(title: "頼んだ・待っている", detail: String(localized: "\(steps.count)本")) {
+            BoxRows(items: steps) { step in
+                WaitingStepRow(step: step)
             }
         }
+    }
+}
+
+/// 頼む・待ちの薪の1行。だれに頼むかを2行目に
+struct WaitingStepRow: View {
+    let step: Step
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: step.owner == .wait ? "hourglass" : "person.2")
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.sub)
+                .frame(width: 26)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(step.title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Theme.ink)
+                Text(subtitle)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.sub)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var subtitle: String {
+        if step.owner == .wait { return String(localized: "返事待ち") }
+        if let who = step.askWho, !who.isEmpty { return String(localized: "\(who)に頼む") }
+        return String(localized: "だれかに頼む")
     }
 }
 
