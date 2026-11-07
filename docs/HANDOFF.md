@@ -35,8 +35,11 @@
 
 ## 2026-11-07 に足したもの
 
-- Google カレンダーを Kajiri の中でつなぐ（`GoogleCalendarRepository`）: コードは main にある。Google 側の設定は 2026-11-07 に済ませた（共用プロジェクト `otayori-tsuzukit` の Google Auth Platform: アプリ名 Kajiri・外部・**テスト中**、iOS クライアント「Kajiri iOS」、Calendar API 有効、スコープ登録、テストユーザー1人）。クライアント ID は gitignore の `ios/Config/Local.xcconfig` に入れた。**実際のログインはまだ一度も試していない**
-  - テスト中につなげるのはテストユーザーだけ。`calendar.events.readonly` は「機密性の高いスコープ」なので、公開するなら Google の確認が要る（確認前は未確認の画面が出て、許可は累計100人まで）。審査員に試してもらうなら公開の判断が要る
+- Google カレンダーを Kajiri の中でつなぐ（`GoogleCalendarRepository`）: コードは main にある。Google 側は共用プロジェクト `otayori-tsuzukit` の Google Auth Platform（アプリ名 Kajiri・外部、iOS クライアント「Kajiri iOS」だけ、Calendar API 有効）。クライアント ID は gitignore の `ios/Config/Local.xcconfig` に入れた
+  - 2026-11-07: シミュレータで `ryo.tsuzukihashi@tsuzukit.com` でログインし、許可の画面に権限2つが出て、許可すると Google の予定（祝日など）が月の表示に並ぶところまで確かめた。実機ではまだ
+  - 2026-11-07: **公開ステータスを本番環境にし、Google の確認を申請した（審査中）**。確認が済むまでは誰でもつなげるが「未確認のアプリ」の画面が出て、許可は累計100人まで。Google の案内では最大10日ほど（別のページでは数か月とも）
+  - 申請に使ったもの: ブランディング（ホーム https://tsuzukit.com/kajiri/・プライバシー・規約、承認済みドメイン tsuzukit.com、ロゴ）、Search Console の持ち主確認（tsuzukit.com/googled2839926c051d96a.html。消さない）、デモ動画 https://www.youtube.com/watch?v=wj5qhT3i3tQ（TsuzuKit チャンネル・限定公開。英語の字幕つき）、スコープの理由（英文）
+  - 動画の作り直しが要るときは、シミュレータの言語を英語にして録画し、字幕を重ねる（スクリプトは残していない。手順はこの行のとおり）
   - `Local.xcconfig` が無いビルド（CI や他の人の環境）では、つなぐカードの押すところが動かない
 - 予定もカジリが入れる: `kajiriDecompose` が `events` を返す → `CalendarUseCase.place` が確認なしで iPhone のカレンダーに入れる → `PlacedEventsCard` に「戻す」。同じ予定があれば入れない。「書き直す」は入れた予定も消す。予定から投げたメモでは入れない。`steps` が空なら丸太を作らず「閉じる」だけ出す
   - 書き込み先は iPhone の既定のカレンダーだけ。Google へ直接は書かない（読み取りの権限のまま）
