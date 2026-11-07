@@ -35,10 +35,12 @@
 
 ## 2026-11-07 に足したもの
 
-- Google カレンダーを Kajiri の中でつなぐ（`GoogleCalendarRepository`）: コードは main にある。**Google 側の設定（GOOGLE_IOS_CLIENT_ID・カレンダー API の有効化・同意画面）はまだで、実際のログインは一度も試していない**。設定が空のビルドでは、つなぐカードの押すところが動かない
+- Google カレンダーを Kajiri の中でつなぐ（`GoogleCalendarRepository`）: コードは main にある。Google 側の設定は 2026-11-07 に済ませた（共用プロジェクト `otayori-tsuzukit` の Google Auth Platform: アプリ名 Kajiri・外部・**テスト中**、iOS クライアント「Kajiri iOS」、Calendar API 有効、スコープ登録、テストユーザー1人）。クライアント ID は gitignore の `ios/Config/Local.xcconfig` に入れた。**実際のログインはまだ一度も試していない**
+  - テスト中につなげるのはテストユーザーだけ。`calendar.events.readonly` は「機密性の高いスコープ」なので、公開するなら Google の確認が要る（確認前は未確認の画面が出て、許可は累計100人まで）。審査員に試してもらうなら公開の判断が要る
+  - `Local.xcconfig` が無いビルド（CI や他の人の環境）では、つなぐカードの押すところが動かない
 - 予定もカジリが入れる: `kajiriDecompose` が `events` を返す → `CalendarUseCase.place` が確認なしで iPhone のカレンダーに入れる → `PlacedEventsCard` に「戻す」。同じ予定があれば入れない。「書き直す」は入れた予定も消す。予定から投げたメモでは入れない。`steps` が空なら丸太を作らず「閉じる」だけ出す
   - 書き込み先は iPhone の既定のカレンダーだけ。Google へ直接は書かない（読み取りの権限のまま）
-  - **`functions` はまだデプロイしていない**（本番への反映は本人の OK を取ってから）。デプロイするまで events は返らず、今までどおり薪だけが出る
+  - `functions` はデプロイ済み（2026-11-07）。ただし TestFlight の 1.0.0 (2) は予定を入れるコードを持たないので、試すには新しいビルドが要る
   - 精度（2026-11-07、`evals/events/run.mjs`、`claude-sonnet-5-5:medium`、2 回ずつ）: 予定のメモ 48 回で、余計な予定・日時違いは 0 回、入れ忘れは 1 回（「今週の日曜 友達の結婚式」で予定に入らず薪になった）。前からの分解のメモ 32 回で薪の決まり違反は 0 回。「来週の火曜にプレゼン」はその日の終日の予定に入る
   - 画面はまだ動かして見ていない
 
