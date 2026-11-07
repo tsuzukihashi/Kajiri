@@ -38,7 +38,8 @@ struct SectionBox<Content: View>: View {
             VStack(spacing: 0) {
                 content
             }
-            .background(.white, in: .rect(cornerRadius: 18))
+            .background(.white)
+            .clipShape(.rect(cornerRadius: 18))
         }
     }
 }
@@ -47,6 +48,13 @@ struct SectionBox<Content: View>: View {
 struct BoxDivider: View {
     var body: some View {
         Divider().padding(.leading, 50)
+    }
+}
+
+/// 印の無い行（文字だけの行）のあいだの線
+struct BoxTextDivider: View {
+    var body: some View {
+        Divider().padding(.leading, 16)
     }
 }
 

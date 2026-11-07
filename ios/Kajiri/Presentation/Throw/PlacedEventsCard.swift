@@ -7,25 +7,25 @@ struct PlacedEventsCard: View {
     let onUndo: (PlacedEvent) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(heading, systemImage: "calendar.badge.plus")
-                .font(.system(size: 14, weight: .heavy))
-            ForEach(placement.events) { placed in
+        SectionBox(title: heading, detail: nil) {
+            ForEach(Array(placement.events.enumerated()), id: \.element.id) { index, placed in
+                if index > 0 { BoxDivider() }
                 PlacedEventRow(placed: placed, onUndo: onUndo)
             }
             if placement.needsAccess {
-                Text("iPhone のカレンダーを許可すると、カジリが入れられる。")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.sub)
-                Button("設定を開く") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                if !placement.events.isEmpty { BoxDivider() }
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("iPhone のカレンダーを許可すると、カジリが入れられる。")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.sub)
+                    Button("設定を開く") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
                 }
-                .buttonStyle(SecondaryButtonStyle())
+                .padding(14)
             }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.amberSoft, in: .rect(cornerRadius: 18))
     }
 
     private var heading: LocalizedStringKey {
@@ -36,7 +36,7 @@ struct PlacedEventsCard: View {
 
 #if DEBUG
 #Preview("入れた") {
-    PlacedEventsCard(placement: .sampleAdded, onUndo: { _ in }).padding()
+    PlacedEventsCard(placement: .sampleAdded, onUndo: { _ in }).padding().background(Theme.ground)
 }
 
 #Preview("許可が無い") {

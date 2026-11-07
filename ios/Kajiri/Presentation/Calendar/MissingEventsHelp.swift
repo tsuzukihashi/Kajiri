@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 月の表示の下。Outlook や会社のカレンダーは、iPhone の設定にアカウントを入れないと Kajiri から見えない
+/// カレンダーの設定の「ほかのカレンダー」の箱の中身。Outlook や会社のカレンダーは、iPhone の設定にアカウントを入れないと Kajiri から見えない
 /// （Kajiri が直接読めるのは Google だけ）。その足し方を、押したときだけ開いて見せる
 struct MissingEventsHelp: View {
     @State private var isOpen = false
@@ -19,7 +19,7 @@ struct MissingEventsHelp: View {
                         .rotationEffect(.degrees(isOpen ? 180 : 0))
                 }
                 .foregroundStyle(Theme.ink)
-                .padding(.vertical, 12)
+                .padding(.vertical, 14)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -41,7 +41,6 @@ struct MissingEventsHelp: View {
         }
         .padding(.horizontal, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: .rect(cornerRadius: 18))
     }
 
     private func step(_ number: Int, _ text: LocalizedStringKey) -> some View {
@@ -57,7 +56,7 @@ struct MissingEventsHelp: View {
 }
 
 #Preview("閉じている") {
-    MissingEventsHelp()
+    SectionBox(title: "ほかのカレンダー", detail: nil) { MissingEventsHelp() }
         .padding()
         .background(Theme.ground)
 }

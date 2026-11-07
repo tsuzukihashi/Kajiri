@@ -18,11 +18,13 @@ struct HandoffView: View {
             }
         }
         .background(Theme.ground)
+        // 届いたもの1つを受け取る画面なので、タブを隠して「受け取った」を下に隠さない
+        .toolbar(.hidden, for: .tabBar)
     }
 
     private func content(_ step: Step) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 24) {
                 HStack(spacing: 12) {
                     KajiriImage(pose: step.workState == .ready ? .hand : .gnaw, size: 72)
                     VStack(alignment: .leading, spacing: 4) {
@@ -41,7 +43,7 @@ struct HandoffView: View {
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Theme.card, in: .rect(cornerRadius: 18))
+                    .background(.white, in: .rect(cornerRadius: 18))
                 case .ready:
                     readyContent(step)
                 case .failed:
@@ -57,40 +59,44 @@ struct HandoffView: View {
                     .background(Theme.amberSoft, in: .rect(cornerRadius: 18))
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 20)
         }
     }
 
     private func readyContent(_ step: Step) -> some View {
         // 前の版で保存した下書きに Markdown が残っていても、記号を見せない
         let body = PlainText.clean(step.workBody ?? "")
-        return VStack(alignment: .leading, spacing: 12) {
-            Text(body)
-                .font(.system(size: 15))
-                .lineSpacing(4)
-                .textSelection(.enabled)
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.card, in: .rect(cornerRadius: 18))
-            HStack(spacing: 10) {
-                Button(copied ? "コピーしました" : "コピーする") {
-                    UIPasteboard.general.string = body
-                    copied = true
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                ShareLink(item: body) {
-                    Label("送る・使う", systemImage: "square.and.arrow.up")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.ink)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(Theme.chip, in: .rect(cornerRadius: 14))
-                }
+        return VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+            SectionBox(title: "カジリが作ったもの", detail: nil) {
+                Text(body)
+                    .font(.system(size: 15))
+                    .lineSpacing(4)
+                    .textSelection(.enabled)
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Button("受け取った") {
-                useCase.complete(step, now: AppClock.now)
-                dismiss()
+            VStack(spacing: 10) {
+                HStack(spacing: 10) {
+                    Button(copied ? "コピーしました" : "コピーする") {
+                        UIPasteboard.general.string = body
+                        copied = true
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    ShareLink(item: body) {
+                        Label("送る・使う", systemImage: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Theme.ink)
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Theme.chip, in: .rect(cornerRadius: 14))
+                    }
+                }
+                Button("受け取った") {
+                    useCase.complete(step, now: AppClock.now)
+                    dismiss()
+                }
+                .buttonStyle(PrimaryButtonStyle())
             }
-            .buttonStyle(PrimaryButtonStyle())
         }
     }
 

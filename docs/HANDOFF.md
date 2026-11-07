@@ -31,6 +31,7 @@
 - 週のふりかえり（kajiriWeekly）、通知（朝の1本目・締め切りの前の日・月曜）、Siri・アクションボタン（App Intents）、アプリアイコン、README、単体テスト 20 件
 - tsuzukit.com/kajiri/ に LP・プライバシーポリシー・利用規約を置いた（tsuzukit.com のリポジトリ）。アプリの丸太の一覧と月の表示のいちばん下からリンク
 - ストアのスクショ: `ios/KajiriUITests/ScreenshotTests.swift` が `-storeShots`（メモリの中の見本データと決まった答えの中継サーバ。`App/StoreShots.swift`）で6枚撮る。fastlane snapshot は 2.240.0 でシミュレータ一覧を読むところで落ちるので、`xcodebuild test -only-testing:KajiriUITests/ScreenshotTests` を直接当て、`~/Library/Caches/tools.fastlane/screenshots` から `fastlane/screenshots/ja` へ写して `fastlane frameit silver`（LANG=en_US.UTF-8）。撮る前に `simctl status_bar override --time 10:15`（アプリの時計と合わせる）
+- 画面の確認用: `-storeShots -storeShotsState empty|kajiri|done` で、今日のタブの「はじめ」「カジリの番」「おわり」を見本データのまま開ける
 - DEBUG だけの起動引数: `-seedDemo`（見本の予定）・`-demoHour 10`（時計をずらす）・`-demoThrow "メモ"`（デモ動画を撮るときに使う）
 
 ## 2026-11-07 に足したもの

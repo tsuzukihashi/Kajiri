@@ -1,21 +1,19 @@
 import SwiftUI
 
-/// 月の表示の下。Google カレンダーという物を、ここでつなぐ・切る。
+/// カレンダーの設定の「Google カレンダー」の箱の中身。Google カレンダーという物を、ここでつなぐ・切る。
 /// iPhone の設定にアカウントを入れなくても、Kajiri の中でログインするだけで予定が並ぶ
 struct GoogleCalendarCard: View {
     @Environment(CalendarUseCase.self) private var calendar
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label("Google カレンダー", systemImage: "calendar.badge.checkmark")
-                    .font(.system(size: 15, weight: .heavy))
-                Spacer()
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.sub)
+                Spacer(minLength: 8)
                 if calendar.isGoogleWorking { ProgressView() }
             }
-            Text(description)
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.sub)
             if let message = calendar.googleMessage {
                 Text(message)
                     .font(.system(size: 13, weight: .bold))
@@ -25,7 +23,6 @@ struct GoogleCalendarCard: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: .rect(cornerRadius: 18))
     }
 
     private var description: String {
@@ -78,7 +75,7 @@ private struct GoogleCalendarCardPreview: View {
     var body: some View {
         Group {
             if let calendar {
-                GoogleCalendarCard().environment(calendar)
+                SectionBox(title: "Google カレンダー", detail: nil) { GoogleCalendarCard() }.environment(calendar)
             }
         }
         .padding()
@@ -88,7 +85,7 @@ private struct GoogleCalendarCardPreview: View {
 }
 
 #Preview("まだつないでいない") {
-    GoogleCalendarCard()
+    SectionBox(title: "Google カレンダー", detail: nil) { GoogleCalendarCard() }
         .padding()
         .background(Theme.ground)
         .environment(CalendarUseCase.preview(access: .granted))

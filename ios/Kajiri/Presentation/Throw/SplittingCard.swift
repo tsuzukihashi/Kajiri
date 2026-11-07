@@ -19,25 +19,25 @@ struct SplittingCard: View {
     }
 }
 
-/// メールや LINE からも投げられる、の案内
+/// メールや LINE からも投げられる、の案内。メモの次に読むものではないので、箱に入れず控えめに
 struct ShareHintRow: View {
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(alignment: .top, spacing: 10) {
             Image(systemName: "square.and.arrow.up")
-                .font(.system(size: 18))
-                .frame(width: 44, height: 44)
-                .background(Theme.chip, in: .rect(cornerRadius: 12))
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.sub)
+                .frame(width: 26)
             VStack(alignment: .leading, spacing: 2) {
                 Text("メール・LINE・Safari からも投げられる")
-                    .font(.system(size: 15, weight: .heavy))
+                    .font(.system(size: 13, weight: .heavy))
+                    .foregroundStyle(Theme.ink)
                 Text("共有から「Kajiri」を選ぶと、ここに入ります。まとめて書いても、いちばん大きい丸太から分けます")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.sub)
             }
             Spacer(minLength: 0)
         }
-        .padding(14)
-        .background(Theme.card, in: .rect(cornerRadius: 18))
+        .padding(.horizontal, 4)
     }
 }
 

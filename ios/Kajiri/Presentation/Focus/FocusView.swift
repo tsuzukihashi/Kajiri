@@ -89,7 +89,7 @@ struct FocusCard: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: .rect(cornerRadius: 20))
+        .background(.white, in: .rect(cornerRadius: 20))
     }
 }
 

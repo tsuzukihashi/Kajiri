@@ -16,6 +16,37 @@ enum StoreShots {
         return arguments[index + 1]
     }
 
+    /// -storeShotsState empty: 丸太が1本も無い（今日の「はじめ」）
+    /// -storeShotsState kajiri: じぶんの薪を全部明日にまわした（今日の「カジリの番」）
+    /// -storeShotsState done: 今日の3本を片づけた（今日の「おわり」）
+    static var state: String? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "-storeShotsState"), index + 1 < arguments.count else { return nil }
+        return arguments[index + 1]
+    }
+
+    /// 見本データを入れる。state に合わせて、空のままにするか、じぶんの薪を明日にまわす
+    @MainActor
+    static func prepare(_ context: ModelContext, now: Date) {
+        guard state != "empty" else { return }
+        seed(context, now: now)
+        let steps = (try? context.fetch(FetchDescriptor<Step>())) ?? []
+        switch state {
+        case "kajiri":
+            for step in steps where step.owner == .me && !step.isDone {
+                step.notBefore = JapanDate.addingDays(1, to: now)
+            }
+        case "done":
+            for step in TodayPicker.pick(from: steps, now: now, limit: TodayPicker.dailyCount).open {
+                step.isDone = true
+                step.doneAt = now
+            }
+        default:
+            return
+        }
+        try? context.save()
+    }
+
     static let splitMemo = "確定申告、去年ギリギリで地獄だった。今年は早めにやりたい。医療費の領収書は箱に入ってる"
 
     @MainActor

@@ -39,7 +39,10 @@ struct LogsView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 100)
                 }
-                ThrowButton { router.throwNew() }
+                // 丸太が無いときは、空の案内の「丸太を投げる」と重ねない
+                if !logs.isEmpty {
+                    ThrowButton { router.throwNew() }
+                }
             }
             .background(Theme.ground)
             .navigationTitle("丸太")
@@ -72,8 +75,11 @@ struct LogsView: View {
             } description: {
                 Text("気になっていることを投げると、カジリがすぐ手が動く大きさの薪にかじって、ここに並べます。")
             } actions: {
-                Button("丸太を投げる") { router.throwNew() }
-                    .buttonStyle(PrimaryButtonStyle())
+                Button { router.throwNew() } label: {
+                    Text("丸太を投げる").padding(.horizontal, 32)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .fixedSize()
             }
             .padding(.top, 20)
         }

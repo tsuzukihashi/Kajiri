@@ -8,15 +8,21 @@ struct WeeklySheet: View {
     var body: some View {
         let summary = viewModel.summary(useCase: useCase)
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 header(summary)
                 countCard(summary)
-                review(summary)
-                Text("ふりかえりは、片づけた薪の名前と数だけをカジリに送って書いてもらいます。")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Theme.sub)
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionBox(title: "カジリのふりかえり", detail: nil) {
+                        review(summary)
+                    }
+                    Text("ふりかえりは、片づけた薪の名前と数だけをカジリに送って書いてもらいます。")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.sub)
+                        .padding(.horizontal, 4)
+                }
             }
-            .padding(18)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 20)
         }
         .background(Theme.ground)
         .onAppear { viewModel.load(useCase: useCase) }
@@ -45,24 +51,24 @@ struct WeeklySheet: View {
     }
 
     private func countCard(_ summary: WeekSummary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("片づけた薪").font(.system(size: 13)).foregroundStyle(Theme.sub)
-                Text("\(summary.done.count)").font(.system(size: 40, weight: .black))
-                Text("本").font(.system(size: 14, weight: .bold))
-                Spacer()
-                if summary.kajiriDone > 0 {
-                    Text("カジリが作った分 \(summary.kajiriDone)本")
-                        .font(.system(size: 12, weight: .heavy))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Theme.amberSoft, in: .capsule)
+        SectionBox(title: "片づけた薪", detail: nil) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("\(summary.done.count)").font(.system(size: 40, weight: .black))
+                    Text("本").font(.system(size: 14, weight: .bold))
+                    Spacer()
+                    if summary.kajiriDone > 0 {
+                        Text("カジリが作った分 \(summary.kajiriDone)本")
+                            .font(.system(size: 12, weight: .heavy))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Theme.amberSoft, in: .capsule)
+                    }
                 }
+                WeekBars(days: summary.days)
             }
-            WeekBars(days: summary.days)
+            .padding(16)
         }
-        .padding(16)
-        .background(Theme.card, in: .rect(cornerRadius: 20))
     }
 
     @ViewBuilder
@@ -83,14 +89,12 @@ struct WeeklySheet: View {
                 .buttonStyle(PrimaryButtonStyle())
             }
             .padding(16)
-            .background(Theme.card, in: .rect(cornerRadius: 20))
         case .writing:
             HStack(spacing: 10) {
                 ProgressView()
                 Text("カジリが書いています…").font(.system(size: 14, weight: .bold))
             }
             .frame(maxWidth: .infinity, minHeight: 80)
-            .background(Theme.card, in: .rect(cornerRadius: 20))
         case let .failed(message):
             VStack(alignment: .leading, spacing: 10) {
                 Label(message, systemImage: "exclamationmark.triangle").font(.system(size: 13))
@@ -100,16 +104,18 @@ struct WeeklySheet: View {
                 .buttonStyle(SecondaryButtonStyle())
             }
             .padding(16)
-            .background(Theme.amberSoft, in: .rect(cornerRadius: 20))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.amberSoft)
         case let .written(result):
             ReviewCard(title: "よかったところ", text: result.good, isAccent: false)
+            BoxTextDivider()
             ReviewCard(title: "次の一歩", text: result.next, isAccent: false)
             ReviewCard(title: "今日のひとこと", text: result.word, isAccent: true)
         }
     }
 }
 
-/// ふりかえりの1欄
+/// ふりかえりの1欄（箱の中の1行。今日のひとことだけ琥珀色の地）
 private struct ReviewCard: View {
     let title: LocalizedStringKey
     let text: String
@@ -127,7 +133,7 @@ private struct ReviewCard: View {
             Spacer(minLength: 0)
         }
         .padding(16)
-        .background(isAccent ? Theme.amberSoft : Theme.card, in: .rect(cornerRadius: 20))
+        .background(isAccent ? Theme.amberSoft : .white)
     }
 }
 

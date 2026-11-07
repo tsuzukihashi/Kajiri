@@ -117,6 +117,8 @@ struct PlanView: View {
             if case let .free(slot, _, _) = item, !slot.isOverflow { return total + slot.minutes }
             return total
         }
+        // 就寝を過ぎて空きが無いときに「空き 0分」と出さない
+        guard free > 0 else { return String(localized: "予定 \(timed)件") }
         return String(localized: "予定 \(timed)件・空き \(FreeTimeHint.duration(free))")
     }
 

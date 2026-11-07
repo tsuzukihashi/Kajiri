@@ -20,7 +20,7 @@ struct KajiriApp: App {
         // App Store のスクリーンショット用: メモリの中の見本データと、決まった答えを返す中継サーバ
         if StoreShots.isOn {
             let shots = try! ModelContainer(for: Log.self, Step.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-            StoreShots.seed(shots.mainContext, now: AppClock.now)
+            StoreShots.prepare(shots.mainContext, now: AppClock.now)
             self.container = shots
             _useCase = State(initialValue: LogUseCase(context: shots.mainContext, api: StoreShotAPI(), notifications: MockNotificationScheduler()))
             _calendar = State(initialValue: CalendarUseCase(repository: EventKitCalendarRepository(), google: MockGoogleCalendarRepository(isAvailable: false, account: nil, connectsAs: nil, events: [], failure: nil), api: StoreShotAPI()))

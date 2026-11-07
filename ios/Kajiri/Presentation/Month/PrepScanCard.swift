@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 「カジリに準備を見てもらう」。押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送る
+/// 「準備が要りそうな予定を探す」の中身。上にカジリと説明、下に見つかった予定を1つの箱にまとめる。
+/// 押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送る
 struct PrepScanCard: View {
     let viewModel: PrepScanViewModel
     let linked: Set<String>
@@ -8,11 +9,11 @@ struct PrepScanCard: View {
     let onThrow: (PrepPick) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 10) {
-                KajiriImage(pose: .think, size: 44)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("準備が要りそうな予定を探す").font(.system(size: 15, weight: .heavy))
+        VStack(alignment: .leading, spacing: 24) {
+            HStack(alignment: .top, spacing: 12) {
+                KajiriImage(pose: .think, size: 56)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("準備が要りそうな予定を探す").font(.system(size: 20, weight: .black))
                     Text("押したときだけ、この先2週間の予定の名前・日時・場所をカジリに送ります。")
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.sub)
@@ -20,8 +21,6 @@ struct PrepScanCard: View {
             }
             content
         }
-        .padding(14)
-        .background(Theme.card, in: .rect(cornerRadius: 20))
     }
 
     @ViewBuilder
@@ -34,28 +33,44 @@ struct PrepScanCard: View {
                 ProgressView()
                 Text("カジリが予定を見ています…").font(.system(size: 13, weight: .bold))
             }
-            .frame(maxWidth: .infinity, minHeight: 56)
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .background(.white, in: .rect(cornerRadius: 18))
         case let .failed(message):
-            Label(message, systemImage: "exclamationmark.triangle")
-                .font(.system(size: 13))
-            Button("もう一度見てもらう", action: onScan).buttonStyle(SecondaryButtonStyle())
+            VStack(alignment: .leading, spacing: 12) {
+                Label(message, systemImage: "exclamationmark.triangle")
+                    .font(.system(size: 13))
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.amberSoft, in: .rect(cornerRadius: 14))
+                Button("もう一度見てもらう", action: onScan).buttonStyle(SecondaryButtonStyle())
+            }
         case let .result(result):
-            KajiriBubbleRow(text: result.comment)
-            ForEach(result.picks) { pick in
-                PrepPickRow(
-                    pick: pick,
-                    event: viewModel.event(for: pick),
-                    isThrown: linked.contains(pick.eventID),
-                    onThrow: { onThrow(pick) }
-                )
+            VStack(alignment: .leading, spacing: 14) {
+                KajiriBubbleRow(text: result.comment)
+                if result.picks.isEmpty {
+                    Text("予定が増えたら、また見てもらえます。")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.sub)
+                        .padding(.horizontal, 4)
+                } else {
+                    SectionBox(title: "準備が要りそうな予定", detail: String(localized: "\(result.picks.count)件")) {
+                        ForEach(Array(result.picks.enumerated()), id: \.element.id) { index, pick in
+                            if index > 0 { BoxTextDivider() }
+                            PrepPickRow(
+                                pick: pick,
+                                event: viewModel.event(for: pick),
+                                isThrown: linked.contains(pick.eventID),
+                                onThrow: { onThrow(pick) }
+                            )
+                        }
+                    }
+                    .padding(.top, 10)
+                }
+                Button("もう一度見てもらう", action: onScan)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Theme.ink)
+                    .frame(maxWidth: .infinity, minHeight: 44)
             }
-            if result.picks.isEmpty {
-                Text("予定が増えたら、また見てもらえます。").font(.system(size: 12)).foregroundStyle(Theme.sub)
-            }
-            Button("もう一度見てもらう", action: onScan)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Theme.ink)
-                .frame(maxWidth: .infinity, minHeight: 44)
         }
     }
 }
@@ -69,6 +84,7 @@ private struct KajiriBubbleRow: View {
             KajiriImage(pose: .face, size: 26)
             Text(text).font(.system(size: 14, weight: .bold))
         }
+        .padding(.horizontal, 4)
     }
 }
 
@@ -97,9 +113,8 @@ private struct PrepPickRow: View {
                 Button("この準備をかじってもらう", action: onThrow).buttonStyle(SecondaryButtonStyle())
             }
         }
-        .padding(12)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white, in: .rect(cornerRadius: 14))
     }
 }
 

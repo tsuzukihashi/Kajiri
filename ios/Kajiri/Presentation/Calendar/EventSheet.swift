@@ -13,7 +13,7 @@ struct EventSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 24) {
                 EventSummary(event: event)
                 if let log = logs.first(where: { $0.sourceEventID == event.id }) {
                     LinkedLogCard(log: log)
@@ -22,7 +22,8 @@ struct EventSheet: View {
                 }
                 editControl
             }
-            .padding(18)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 24)
         }
         .background(Theme.ground)
         .sheet(item: $editor) { request in
@@ -59,7 +60,7 @@ struct EventSheet: View {
                 .buttonStyle(PrimaryButtonStyle())
         }
         .padding(14)
-        .background(Theme.card, in: .rect(cornerRadius: 18))
+        .background(.white, in: .rect(cornerRadius: 18))
     }
 }
 

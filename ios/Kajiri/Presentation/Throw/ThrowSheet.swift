@@ -49,7 +49,7 @@ struct ThrowSheet: View {
                 }
             )
             ScrollView {
-                VStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                     memoCard
                     if viewModel.phase == .splitting {
                         SplittingCard()
@@ -64,7 +64,8 @@ struct ThrowSheet: View {
                     }
                     ShareHintRow()
                 }
-                .padding(16)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 20)
             }
             .scrollDismissesKeyboard(.interactively)
             .contentShape(Rectangle())
@@ -76,14 +77,11 @@ struct ThrowSheet: View {
     }
 
     private var memoCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("気になってること、そのまま。整えなくていい")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.sub)
+        SectionBox(title: "気になってること", detail: String(localized: "整えなくていい")) {
             TextEditor(text: $viewModel.memo)
                 .focused($isMemoFocused)
                 .font(.system(size: 16))
-                .frame(minHeight: 150)
+                .frame(minHeight: 170)
                 .scrollContentBackground(.hidden)
                 .overlay(alignment: .topLeading) {
                     if viewModel.memo.isEmpty {
@@ -96,9 +94,8 @@ struct ThrowSheet: View {
                     }
                 }
                 .disabled(viewModel.phase == .splitting)
+                .padding(12)
         }
-        .padding(16)
-        .background(Theme.card, in: .rect(cornerRadius: 18))
     }
 }
 

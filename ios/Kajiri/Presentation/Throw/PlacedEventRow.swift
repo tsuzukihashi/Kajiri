@@ -7,6 +7,11 @@ struct PlacedEventRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
+            Image(systemName: "calendar")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 26, height: 26)
+                .background(Theme.amberSoft, in: .rect(cornerRadius: 7))
             VStack(alignment: .leading, spacing: 2) {
                 Text(placed.event.title)
                     .font(.system(size: 15, weight: .bold))
@@ -18,6 +23,7 @@ struct PlacedEventRow: View {
             Spacer()
             trailing
         }
+        .padding(14)
     }
 
     @ViewBuilder
@@ -29,7 +35,7 @@ struct PlacedEventRow: View {
                 .font(.system(size: 14, weight: .heavy))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(Theme.card, in: .capsule)
+                .background(Theme.chip, in: .capsule)
         case .alreadyThere:
             status("もう入っていた")
         case .undone:

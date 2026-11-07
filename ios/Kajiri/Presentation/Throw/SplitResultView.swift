@@ -12,22 +12,28 @@ struct SplitResultView: View {
         VStack(spacing: 0) {
             header
             ScrollView {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                     if !placement.isEmpty {
                         PlacedEventsCard(placement: placement, onUndo: onUndo)
                     }
-                    ForEach(Array(result.steps.enumerated()), id: \.offset) { _, step in
-                        StepRow(step: step)
+                    ForEach(groups, id: \.title) { group in
+                        SectionBox(titleText: Text(group.title), detail: String(localized: "\(group.steps.count)本")) {
+                            ForEach(Array(group.steps.enumerated()), id: \.offset) { index, step in
+                                if index > 0 { BoxTextDivider() }
+                                StepRow(step: step)
+                            }
+                        }
                     }
                     if !result.why.isEmpty {
                         Label(result.why, systemImage: "sparkles")
                             .font(.system(size: 13))
                             .foregroundStyle(Theme.sub)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, 6)
+                            .padding(.horizontal, 4)
                     }
                 }
-                .padding(16)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 20)
             }
             HStack(spacing: 10) {
                 Button("書き直す", action: onBack).buttonStyle(SecondaryButtonStyle())
@@ -39,6 +45,17 @@ struct SplitResultView: View {
             .background(Theme.ground.shadow(.drop(color: .black.opacity(0.06), radius: 6, y: -3)))
         }
         .background(Theme.ground)
+    }
+
+    /// 誰がやるかで分けた薪（それぞれの中は、かじった順のまま）
+    private var groups: [(title: String, steps: [StepDTO])] {
+        func owner(_ step: StepDTO) -> StepOwner { StepOwner(rawValue: step.owner) ?? .me }
+        let all: [(String, [StepDTO])] = [
+            (String(localized: "じぶんの薪"), result.steps.filter { owner($0) == .me }),
+            (String(localized: "カジリがやる"), result.steps.filter { owner($0) == .kajiri }),
+            (String(localized: "頼む・待ち"), result.steps.filter { owner($0) == .other || owner($0) == .wait }),
+        ]
+        return all.filter { !$0.1.isEmpty }.map { (title: $0.0, steps: $0.1) }
     }
 
     private var header: some View {

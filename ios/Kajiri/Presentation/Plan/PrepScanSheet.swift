@@ -25,7 +25,8 @@ struct PrepScanSheet: View {
                     }
                 }
             )
-            .padding(16)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 24)
         }
         .background(Theme.ground)
     }
