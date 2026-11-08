@@ -70,6 +70,27 @@ struct SecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// カジリのひとこと。カジリは脇役なので、絵は小さく言葉の横に添える（画面の主役は、やること・数・届いたもの）
+struct KajiriSays: View {
+    let pose: KajiriPose
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            KajiriImage(pose: pose, size: 52)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(.system(size: 15, weight: .heavy))
+                .foregroundStyle(Theme.ink)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Theme.card, in: .rect(cornerRadius: 16))
+            Spacer(minLength: 0)
+        }
+    }
+}
+
 /// カジリの吹き出し
 struct KajiriBubble: View {
     let text: String
@@ -102,8 +123,7 @@ private struct Triangle: Shape {
 
 #Preview("ボタンと吹き出し") {
     VStack(spacing: 16) {
-        KajiriBubble(text: "これだけ持って。ほかは、おれが持ってる。")
-        KajiriImage(pose: .hand, size: 180)
+        KajiriSays(pose: .hand, text: "これだけ持って。ほかは、おれが持ってる。")
         Button("できた") {}.buttonStyle(PrimaryButtonStyle())
         Button("あとで") {}.buttonStyle(SecondaryButtonStyle())
     }

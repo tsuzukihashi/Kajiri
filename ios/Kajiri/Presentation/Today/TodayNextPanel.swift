@@ -37,7 +37,7 @@ struct TodayNextPanel: View {
 private struct KajiriTurnEmptyNote: View {
     var body: some View {
         VStack(spacing: 10) {
-            KajiriImage(pose: .gnaw, size: 120)
+            KajiriImage(pose: .gnaw, size: 48)
             Text("カジリの番の薪は、いまありません")
                 .font(.system(size: 17, weight: .heavy))
             Text("下書きや調べものをカジリに任せた薪があると、作ったものがここに届きます。")

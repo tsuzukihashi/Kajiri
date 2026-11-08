@@ -74,21 +74,23 @@ struct TodayDonePanel: View {
         inbox.contains(where: { $0.workState == .ready || $0.workState == .failed })
     }
 
+    /// 主役は「今日片づけた本数」。カジリはその上に小さく添える
     private var celebration: some View {
-        VStack(spacing: 4) {
-            KajiriBubble(text: isClosed ? String(localized: "おつかれさま。また明日。") : String(localized: "今日の\(doneToday)本、おわり。"))
-                .id(isClosed)
-                .transition(.scale(scale: 0.85, anchor: .bottom).combined(with: .opacity))
-                .padding(.top, 16)
-            KajiriImage(pose: isClosed ? .sit : .dam, size: 220)
-                .id(isClosed ? "sit" : "dam")
-                .transition(.asymmetric(insertion: .scale(scale: 0.9).combined(with: .opacity), removal: .opacity))
+        VStack(alignment: .leading, spacing: 12) {
+            KajiriSays(
+                pose: isClosed ? .sit : .dam,
+                text: isClosed ? String(localized: "おつかれさま。また明日。") : String(localized: "今日の\(doneToday)本、おわり。")
+            )
+            .id(isClosed)
+            .transition(.opacity.combined(with: .move(edge: .leading)))
             Button(action: onWeekly) {
                 DoneCountCard(totalDone: totalDone, doneToday: doneToday)
             }
             .buttonStyle(.plain)
             .accessibilityHint(Text("週のふりかえりを開く"))
         }
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
     }
 
     @ViewBuilder
@@ -154,29 +156,30 @@ struct TodayDonePanel: View {
     }
 }
 
-/// これまでに片づけた薪の本数
+/// 今日片づけた本数（この画面の主役）と、これまでの本数
 private struct DoneCountCard: View {
     let totalDone: Int
     let doneToday: Int
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text("片づけた薪").font(.system(size: 13)).foregroundStyle(Theme.sub)
-            Text("\(totalDone)").font(.system(size: 30, weight: .black))
-            Text("本").font(.system(size: 13, weight: .bold))
-            Spacer()
-            Text("今日 +\(doneToday)")
-                .font(.system(size: 12, weight: .heavy))
-                .padding(.horizontal, 9)
-                .padding(.vertical, 3)
-                .background(Theme.amber, in: .capsule)
-            Image(systemName: "chevron.right").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("今日片づけた薪").font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.sub)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(doneToday)").font(.system(size: 72, weight: .black)).monospacedDigit()
+                Text("本").font(.system(size: 20, weight: .heavy))
+            }
+            ProgressPips(total: max(doneToday, 1), done: doneToday)
+            HStack {
+                Text("これまでに \(totalDone)本").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.sub)
+                Spacer()
+                Text("週のふりかえり").font(.system(size: 13, weight: .bold))
+                Image(systemName: "chevron.right").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.sub)
+            }
         }
         .foregroundStyle(Theme.ink)
-        .padding(16)
-        .background(.white, in: .rect(cornerRadius: 20))
-        .padding(.horizontal, 18)
-        .padding(.top, 10)
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: .rect(cornerRadius: 22))
     }
 }
 

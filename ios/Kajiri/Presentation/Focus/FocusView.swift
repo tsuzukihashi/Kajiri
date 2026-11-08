@@ -26,32 +26,31 @@ struct FocusView: View {
         Group {
             switch columns {
             case .single:
-                VStack(spacing: 4) {
+                VStack(spacing: 12) {
                     logLabel(step)
                     Spacer(minLength: 8)
-                    kajiri
                     FocusCard(step: step)
-                        .padding(.top, 10)
+                    kajiri
                     Spacer(minLength: 8)
                     actions(step)
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 20)
             case let .split(leading, gutter):
-                // 横に広い画面: 左にカジリ、右に薪と「できた」（折り目には何も置かない）
+                // 横に広い画面: 左に薪（主役）、右にカジリのひとことと「できた」（折り目には何も置かない）
                 HStack(spacing: 0) {
-                    VStack {
-                        Spacer(minLength: 8)
-                        kajiri
-                        Spacer(minLength: 8)
-                    }
-                    .frame(width: leading)
-                    Color.clear.frame(width: gutter)
                     VStack(alignment: .leading, spacing: 12) {
                         logLabel(step)
                         Spacer(minLength: 8)
                         FocusCard(step: step)
                         Spacer(minLength: 8)
+                    }
+                    .padding(.leading, 18)
+                    .frame(width: leading)
+                    Color.clear.frame(width: gutter)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Spacer(minLength: 8)
+                        kajiri
                         actions(step)
                     }
                     .padding(.horizontal, 18)
@@ -80,10 +79,7 @@ struct FocusView: View {
     }
 
     private var kajiri: some View {
-        VStack(spacing: 4) {
-            KajiriBubble(text: String(localized: "これだけ持って。ほかは、おれが持ってる。"))
-            KajiriImage(pose: .hand, size: 210)
-        }
+        KajiriSays(pose: .hand, text: String(localized: "これだけ持って。ほかは、おれが持ってる。"))
     }
 
     private func actions(_ step: Step) -> some View {

@@ -15,16 +15,16 @@ struct TodayKajiriPanel: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             AdaptiveColumns(topPadding: 0, bottomPadding: 110) {
-                VStack(spacing: 6) {
-                    KajiriImage(pose: .gnaw, size: 150)
+                VStack(alignment: .leading, spacing: 10) {
                     Text("いま、じぶんの番の薪はありません")
-                        .font(.system(size: 18, weight: .heavy))
+                        .font(.system(size: 22, weight: .black))
                     Text(message)
                         .font(.system(size: 14))
                         .foregroundStyle(Theme.sub)
-                        .multilineTextAlignment(.center)
+                    KajiriSays(pose: .gnaw, text: String(localized: "いまは、おれの番。"))
+                        .padding(.top, 4)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 12)
             } trailing: {
                 if !inbox.isEmpty {

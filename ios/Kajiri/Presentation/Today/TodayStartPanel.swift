@@ -43,20 +43,21 @@ struct TodayStartPanel: View {
         }
     }
 
+    /// 主役は「何をしてくれるか」の一文。カジリは小さく添える
     private var greeting: some View {
-        VStack(spacing: 6) {
-            KajiriBubble(text: String(localized: "気になってること、そのまま投げて。"))
-            KajiriImage(pose: .sit, size: 230)
-            VStack(spacing: 8) {
-                Text("大きくて手がつかないことを、カジリが今すぐできる大きさにかじります。")
-                Text("頼まれごと、締め切り、思い出したこと。1行でも大丈夫です。")
-            }
-            .font(.system(size: 14))
-            .foregroundStyle(Theme.sub)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 28)
-            .padding(.top, 8)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("大きくて手がつかないことを、今すぐできる大きさにかじります。")
+                .font(.system(size: 24, weight: .black))
+                .foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("頼まれごと、締め切り、思い出したこと。1行でも大丈夫です。")
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.sub)
+            KajiriSays(pose: .sit, text: String(localized: "気になってること、そのまま投げて。"))
+                .padding(.top, 4)
         }
+        .padding(.horizontal, 18)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var actions: some View {

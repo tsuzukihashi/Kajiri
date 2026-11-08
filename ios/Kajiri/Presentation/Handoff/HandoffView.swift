@@ -86,7 +86,7 @@ struct HandoffView: View {
 
     private func header(_ step: Step) -> some View {
         HStack(spacing: 12) {
-            KajiriImage(pose: step.workState == .ready ? .hand : .gnaw, size: 72)
+            KajiriImage(pose: step.workState == .ready ? .hand : .gnaw, size: 56)
             VStack(alignment: .leading, spacing: 4) {
                 if let log = step.log {
                     Text("丸太: \(log.title)").font(.system(size: 12)).foregroundStyle(Theme.sub)

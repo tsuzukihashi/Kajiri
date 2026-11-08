@@ -134,7 +134,7 @@ private struct LogHeader<Accessory: View>: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                KajiriImage(pose: log.isFinished ? .dam : .gnaw, size: 72)
+                KajiriImage(pose: log.isFinished ? .dam : .gnaw, size: 56)
             }
             if !log.kajiriComment.isEmpty {
                 Text(log.kajiriComment)

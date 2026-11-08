@@ -4,7 +4,7 @@ import SwiftUI
 struct SplittingCard: View {
     var body: some View {
         HStack(spacing: 14) {
-            KajiriImage(pose: .gnaw, size: 72)
+            KajiriImage(pose: .gnaw, size: 56)
             VStack(alignment: .leading, spacing: 6) {
                 Text("カジリがかじっています…")
                     .font(.system(size: 16, weight: .heavy))

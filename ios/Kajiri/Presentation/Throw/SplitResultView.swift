@@ -71,7 +71,7 @@ struct SplitResultView: View {
                 }
             }
             HStack(spacing: 14) {
-                KajiriImage(pose: .gnaw, size: 72)
+                KajiriImage(pose: .gnaw, size: 56)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(result.steps.isEmpty ? "· 予定" : "· 丸太").font(.system(size: 12)).foregroundStyle(Color(white: 0.68))
                     Text(result.logTitle).font(.system(size: 22, weight: .heavy)).foregroundStyle(.white)
