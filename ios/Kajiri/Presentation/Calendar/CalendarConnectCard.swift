@@ -57,6 +57,7 @@ struct CalendarConnectCard: View {
     }
 }
 
+#if DEBUG
 #Preview("まだ聞いていない") {
     CalendarConnectCard(access: .notDetermined) {}
         .padding(.vertical)
@@ -70,3 +71,4 @@ struct CalendarConnectCard: View {
         .background(Theme.ground)
         .environment(CalendarUseCase.preview(access: .denied))
 }
+#endif
