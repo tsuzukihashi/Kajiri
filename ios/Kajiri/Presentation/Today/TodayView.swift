@@ -26,6 +26,14 @@ struct TodayView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Theme.ground)
                 .navigationTitle(Text(now, format: .dateTime.month().day().weekday()))
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink(value: Route.settings) {
+                            Image(systemName: "gearshape")
+                        }
+                        .accessibilityLabel(Text("設定"))
+                    }
+                }
                 .keepsBarsInSplit()
                 .routeDestinations()
         }

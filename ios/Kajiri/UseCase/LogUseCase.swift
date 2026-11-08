@@ -185,10 +185,13 @@ final class LogUseCase {
                 memo: log.memo,
                 today: now
             )
+            // 待っているあいだに、データを全部消された（設定の Debug）ときは書かない
+            guard step.modelContext != nil, !step.isDeleted else { return }
             step.workTitle = PlainText.clean(result.title)
             step.workBody = PlainText.clean(result.body)
             step.workState = .ready
         } catch {
+            guard step.modelContext != nil, !step.isDeleted else { return }
             step.workBody = error.localizedDescription
             step.workState = .failed
         }
@@ -233,6 +236,21 @@ final class LogUseCase {
     }
 
     private static func reviewKey(_ summary: WeekSummary) -> String { "weeklyReview-\(summary.key)" }
+
+    // MARK: 全部消す（設定の Debug）
+
+    /// これまでのデータを全部消す: 丸太・薪（届いたもの・チェック・メモも）・週のふりかえり・「今日はおしまい」の印・予約した通知。
+    /// iPhone のカレンダーに入れた予定と、Google のつなぎは残す（アプリの外のもの）
+    func deleteAllData() async throws {
+        for step in try context.fetch(FetchDescriptor<Step>()) { context.delete(step) }
+        for log in try context.fetch(FetchDescriptor<Log>()) { context.delete(log) }
+        try context.save()
+        let defaults = UserDefaults.standard
+        for key in defaults.dictionaryRepresentation().keys where key == "finishedDay" || key.hasPrefix("weeklyReview-") {
+            defaults.removeObject(forKey: key)
+        }
+        await notifications.replace(with: [])
+    }
 
     // MARK: 読む
 

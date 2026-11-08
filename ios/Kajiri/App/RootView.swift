@@ -54,6 +54,7 @@ struct RootView: View {
             IntentInbox.shared.pendingThrow = nil
             router.throwFromOutside(memo: memo)
         }
+        .task { await InternalBuild.shared.resolve() }
         .task(id: notificationSignature) {
             await useCase.rescheduleNotifications(now: AppClock.now)
         }
@@ -69,7 +70,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
-    /// - -storeShot focus|handoff|checklist|procedures|newProcedures|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
+    /// - -storeShot focus|handoff|checklist|procedures|newProcedures|settings|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {
         if let shot = StoreShots.shot {
@@ -100,6 +101,8 @@ struct RootView: View {
                     step.workProgressJSON = nil
                     router.todayPath = [.handoff(step.uuid)]
                 }
+            case "settings":
+                router.todayPath = [.settings]
             case "plan":
                 router.tab = .plan
             case "logs":

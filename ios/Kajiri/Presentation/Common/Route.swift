@@ -10,6 +10,8 @@ enum Route: Hashable {
     case log(UUID)
     /// 月の予定
     case month
+    /// 設定（アプリと自分のこと。確かめる版では Debug も）
+    case settings
 }
 
 extension Route {
@@ -28,6 +30,7 @@ struct RouteDestinations: ViewModifier {
             case let .handoff(id): HandoffView(stepID: id)
             case let .log(id): LogDetailView(logID: id, isEmbedded: false)
             case .month: MonthView()
+            case .settings: SettingsView()
             }
         }
     }
