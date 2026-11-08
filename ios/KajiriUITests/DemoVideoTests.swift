@@ -61,7 +61,8 @@ final class DemoVideoTests: XCTestCase {
         allowIfAsked(8)
         pause(3)
         // 3. 今日の1本
-        let start = app.buttons["はじめる"]
+        // 「はじめる」は NavigationLink なので、ボタンではなく文字で探す
+        let start = app.staticTexts["はじめる"]
         XCTAssertTrue(start.waitForExistence(timeout: 20))
         mark("today")
         pause(5)
