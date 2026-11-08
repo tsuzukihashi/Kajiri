@@ -15,6 +15,8 @@ struct PlanView: View {
     @Query(sort: \Step.order) private var steps: [Step]
 
     @State private var selectedDay = AppClock.now
+    /// 横に広い画面で、左に出す月
+    @State private var month = AppClock.now
     @State private var selectedEvent: CalendarEvent?
     @State private var editor: EventEditorRequest?
     @State private var showsPrepScan = false
@@ -25,27 +27,67 @@ struct PlanView: View {
         let now = AppClock.now
         let isToday = JapanDate.isSameDay(selectedDay, now)
         NavigationStack(path: $router.planPath) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-                    WeekStrip(selected: selectedDay, now: now, marks: weekMarks()) { selectedDay = $0 }
-                        .padding(.vertical, 12)
-                        .background(.white, in: .rect(cornerRadius: 22))
-                        .padding(.horizontal, 18)
-                    if !calendar.canReadEvents {
-                        CalendarConnectCard(access: calendar.access) {
-                            Task { await calendar.requestAccess() }
+            ColumnReader { columns in
+                switch columns {
+                case .single:
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+                            WeekStrip(selected: selectedDay, now: now, marks: weekMarks()) { selectedDay = $0 }
+                                .padding(.vertical, 12)
+                                .background(.white, in: .rect(cornerRadius: 22))
+                                .padding(.horizontal, 18)
+                            connectCard
+                            dayContent(now: now, isToday: isToday)
                         }
-                        .padding(.horizontal, 18)
+                        .padding(.top, 4)
+                        .padding(.bottom, 40)
                     }
-                    dayContent(now: now, isToday: isToday)
+                case let .split(leading, gutter):
+                    // 横に広い画面: 左に月の表（週の帯の代わりに日を選ぶ）、右に選んだ日の流れ
+                    HStack(spacing: 0) {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+                                MonthHeader(month: month) { months in
+                                    (month, selectedDay) = MonthGrid.moving(month, by: months)
+                                }
+                                .padding(.horizontal, 18)
+                                connectCard
+                                MonthGrid(
+                                    month: month,
+                                    selected: selectedDay,
+                                    now: now,
+                                    dots: MonthGrid.dots(month: month, calendar: calendar),
+                                    deadlineDays: MonthGrid.deadlineDays(logs: logs),
+                                    onSelect: { selectedDay = $0 }
+                                )
+                                .padding(12)
+                                .background(.white, in: .rect(cornerRadius: 22))
+                                .padding(.horizontal, 18)
+                            }
+                            .padding(.top, 4)
+                            .padding(.bottom, 40)
+                        }
+                        .frame(width: leading)
+                        .loadsGoogleMonth(month)
+                        Color.clear.frame(width: gutter)
+                        ScrollView {
+                            dayContent(now: now, isToday: isToday)
+                                .padding(.top, 4)
+                                .padding(.bottom, 40)
+                        }
+                    }
                 }
-                .padding(.top, 4)
-                .padding(.bottom, 40)
             }
             .background(Theme.ground)
             .navigationTitle(Text(selectedDay, format: .dateTime.month().day().weekday()))
             .toolbar { toolbar(now: now, isToday: isToday) }
+            .keepsBarsInSplit()
             .routeDestinations()
+        }
+        .measureColumns()
+        // 「今日」や週の帯で別の月の日を選んだら、月の表もその月にする
+        .onChange(of: selectedDay) { _, day in
+            if !JapanDate.calendar.isDate(day, equalTo: month, toGranularity: .month) { month = day }
         }
         .sheet(isPresented: $showsPrepScan) {
             PrepScanSheet()
@@ -70,6 +112,16 @@ struct PlanView: View {
             }
         }
         #endif
+    }
+
+    @ViewBuilder
+    private var connectCard: some View {
+        if !calendar.canReadEvents {
+            CalendarConnectCard(access: calendar.access) {
+                Task { await calendar.requestAccess() }
+            }
+            .padding(.horizontal, 18)
+        }
     }
 
     @ViewBuilder
@@ -193,6 +245,10 @@ private struct PlanPreview: View {
 }
 
 #Preview("予定がある") {
+    PlanPreview(access: .granted)
+}
+
+#Preview("2列（Duo を開いた内側）", traits: .fixedLayout(width: 951, height: 635)) {
     PlanPreview(access: .granted)
 }
 

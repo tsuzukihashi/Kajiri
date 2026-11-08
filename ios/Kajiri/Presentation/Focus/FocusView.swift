@@ -6,6 +6,7 @@ struct FocusView: View {
 
     @Environment(LogUseCase.self) private var useCase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.columnLayout) private var columns
     @State private var isAskingLater = false
 
     var body: some View {
@@ -22,30 +23,43 @@ struct FocusView: View {
     }
 
     private func content(_ step: Step) -> some View {
-        VStack(spacing: 4) {
-            if let log = step.log {
-                Text("丸太: \(log.title)")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.sub)
-            }
-            Spacer(minLength: 8)
-            KajiriBubble(text: String(localized: "これだけ持って。ほかは、おれが持ってる。"))
-            KajiriImage(pose: .hand, size: 210)
-            FocusCard(step: step)
-                .padding(.top, 10)
-            Spacer(minLength: 8)
-            VStack(spacing: 8) {
-                Button("できた") {
-                    useCase.complete(step, now: AppClock.now)
-                    dismiss()
+        Group {
+            switch columns {
+            case .single:
+                VStack(spacing: 4) {
+                    logLabel(step)
+                    Spacer(minLength: 8)
+                    kajiri
+                    FocusCard(step: step)
+                        .padding(.top, 10)
+                    Spacer(minLength: 8)
+                    actions(step)
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                Button("あとで") { isAskingLater = true }
-                    .buttonStyle(SecondaryButtonStyle())
+                .padding(.horizontal, 18)
+                .padding(.bottom, 20)
+            case let .split(leading, gutter):
+                // 横に広い画面: 左にカジリ、右に薪と「できた」（折り目には何も置かない）
+                HStack(spacing: 0) {
+                    VStack {
+                        Spacer(minLength: 8)
+                        kajiri
+                        Spacer(minLength: 8)
+                    }
+                    .frame(width: leading)
+                    Color.clear.frame(width: gutter)
+                    VStack(alignment: .leading, spacing: 12) {
+                        logLabel(step)
+                        Spacer(minLength: 8)
+                        FocusCard(step: step)
+                        Spacer(minLength: 8)
+                        actions(step)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 20)
+                    .frame(maxWidth: .infinity)
+                }
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.bottom, 20)
         .onAppear { useCase.start(step, now: AppClock.now) }
         .sheet(isPresented: $isAskingLater) {
             LaterSheet(step: step) { closesFocus in
@@ -53,6 +67,34 @@ struct FocusView: View {
                 if closesFocus { dismiss() }
             }
             .presentationDetents([.fraction(0.62), .large])
+        }
+    }
+
+    @ViewBuilder
+    private func logLabel(_ step: Step) -> some View {
+        if let log = step.log {
+            Text("丸太: \(log.title)")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.sub)
+        }
+    }
+
+    private var kajiri: some View {
+        VStack(spacing: 4) {
+            KajiriBubble(text: String(localized: "これだけ持って。ほかは、おれが持ってる。"))
+            KajiriImage(pose: .hand, size: 210)
+        }
+    }
+
+    private func actions(_ step: Step) -> some View {
+        VStack(spacing: 8) {
+            Button("できた") {
+                useCase.complete(step, now: AppClock.now)
+                dismiss()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            Button("あとで") { isAskingLater = true }
+                .buttonStyle(SecondaryButtonStyle())
         }
     }
 }

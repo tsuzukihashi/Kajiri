@@ -7,6 +7,7 @@ struct HandoffView: View {
 
     @Environment(LogUseCase.self) private var useCase
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.columnLayout) private var columns
     @State private var copied = false
 
     var body: some View {
@@ -23,44 +24,79 @@ struct HandoffView: View {
     }
 
     private func content(_ step: Step) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                HStack(spacing: 12) {
-                    KajiriImage(pose: step.workState == .ready ? .hand : .gnaw, size: 72)
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let log = step.log {
-                            Text("丸太: \(log.title)").font(.system(size: 12)).foregroundStyle(Theme.sub)
-                        }
-                        Text(PlainText.clean(step.workTitle ?? step.title)).font(.system(size: 20, weight: .heavy))
-                        Text(statusText(step)).font(.system(size: 13)).foregroundStyle(Theme.sub)
+        Group {
+            switch columns {
+            case .single:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        header(step)
+                        stateContent(step)
                     }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 20)
                 }
-                switch step.workState {
-                case .idle, .working:
-                    HStack(spacing: 10) {
-                        ProgressView()
-                        Text("カジリが作っています。ほかの薪を片づけていて大丈夫です。").font(.system(size: 14))
-                    }
-                    .padding(16)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white, in: .rect(cornerRadius: 18))
-                case .ready:
-                    readyContent(step)
-                case .failed:
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(step.workBody ?? String(localized: "うまく作れませんでした。"))
-                            .font(.system(size: 14))
-                        Button("もう一度たのむ") {
-                            Task { await useCase.runWork(step, now: AppClock.now) }
+            case let .split(leading, gutter):
+                // 横に広い画面: 左にだれが何を作ったか、右に作ったものと「受け取った」
+                HStack(spacing: 0) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            header(step)
+                            Text("見て、よければ使うだけ。合わなければ、使わなくて大丈夫です。")
+                                .font(.system(size: 14))
+                                .foregroundStyle(Theme.sub)
                         }
-                        .buttonStyle(PrimaryButtonStyle())
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 20)
                     }
-                    .padding(16)
-                    .background(Theme.amberSoft, in: .rect(cornerRadius: 18))
+                    .frame(width: leading)
+                    Color.clear.frame(width: gutter)
+                    ScrollView {
+                        stateContent(step)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 20)
+                    }
                 }
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 20)
+        }
+    }
+
+    private func header(_ step: Step) -> some View {
+        HStack(spacing: 12) {
+            KajiriImage(pose: step.workState == .ready ? .hand : .gnaw, size: 72)
+            VStack(alignment: .leading, spacing: 4) {
+                if let log = step.log {
+                    Text("丸太: \(log.title)").font(.system(size: 12)).foregroundStyle(Theme.sub)
+                }
+                Text(PlainText.clean(step.workTitle ?? step.title)).font(.system(size: 20, weight: .heavy))
+                Text(statusText(step)).font(.system(size: 13)).foregroundStyle(Theme.sub)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func stateContent(_ step: Step) -> some View {
+        switch step.workState {
+        case .idle, .working:
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("カジリが作っています。ほかの薪を片づけていて大丈夫です。").font(.system(size: 14))
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white, in: .rect(cornerRadius: 18))
+        case .ready:
+            readyContent(step)
+        case .failed:
+            VStack(alignment: .leading, spacing: 10) {
+                Text(step.workBody ?? String(localized: "うまく作れませんでした。"))
+                    .font(.system(size: 14))
+                Button("もう一度たのむ") {
+                    Task { await useCase.runWork(step, now: AppClock.now) }
+                }
+                .buttonStyle(PrimaryButtonStyle())
+            }
+            .padding(16)
+            .background(Theme.amberSoft, in: .rect(cornerRadius: 18))
         }
     }
 

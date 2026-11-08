@@ -4,14 +4,17 @@ import SwiftUI
 /// 丸太の中身。薪を「誰の番か」で分けて並べる。じぶんの薪は「この1本だけ」、カジリの薪は受け取る画面へ
 struct LogDetailView: View {
     let logID: UUID
+    /// 丸太のタブの右の列に埋めこんで出しているか（横に広い画面）。そのときはタイトルの出し方を変えず、右下の＋のぶん下を空ける
+    let isEmbedded: Bool
 
     @Environment(CalendarUseCase.self) private var calendar
     @Environment(LogUseCase.self) private var useCase
     @Query private var logs: [Log]
     @State private var deadlineRequest: EventEditorRequest?
 
-    init(logID: UUID) {
+    init(logID: UUID, isEmbedded: Bool) {
         self.logID = logID
+        self.isEmbedded = isEmbedded
         _logs = Query(filter: #Predicate<Log> { $0.uuid == logID })
     }
 
@@ -24,7 +27,7 @@ struct LogDetailView: View {
             }
         }
         .background(Theme.ground)
-        .navigationBarTitleDisplayMode(.inline)
+        .modifier(InlineTitleUnlessEmbedded(isEmbedded: isEmbedded))
         .sheet(item: $deadlineRequest) { request in
             EventEditorView(request: request) { savedID in
                 if let savedID, let log = logs.first { useCase.markDeadlineInCalendar(log, eventIdentifier: savedID) }
@@ -72,7 +75,7 @@ struct LogDetailView: View {
             }
             .padding(.horizontal, 18)
             .padding(.top, 8)
-            .padding(.bottom, 40)
+            .padding(.bottom, isEmbedded ? 110 : 40)
         }
     }
 
@@ -92,6 +95,19 @@ struct LogDetailView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
             }
+        }
+    }
+}
+
+/// 丸太の画面として開いたときだけ、タイトルを小さくする（埋めこんだときは、丸太のタブのタイトルをそのまま使う）
+private struct InlineTitleUnlessEmbedded: ViewModifier {
+    let isEmbedded: Bool
+
+    func body(content: Content) -> some View {
+        if isEmbedded {
+            content
+        } else {
+            content.navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -178,7 +194,7 @@ private struct StepSection: View {
 #Preview("進めている丸太") {
     let (useCase, container) = LogUseCase.preview(filled: true)
     let log = useCase.allSteps().compactMap(\.log).first { $0.title == "確定申告" } ?? useCase.allSteps().first!.log!
-    return NavigationStack { LogDetailView(logID: log.uuid) }
+    return NavigationStack { LogDetailView(logID: log.uuid, isEmbedded: false) }
         .environment(useCase)
         .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)
@@ -186,7 +202,7 @@ private struct StepSection: View {
 
 #Preview("見つからない") {
     let (useCase, container) = LogUseCase.preview(filled: false)
-    return NavigationStack { LogDetailView(logID: UUID()) }
+    return NavigationStack { LogDetailView(logID: UUID(), isEmbedded: false) }
         .environment(useCase)
         .environment(CalendarUseCase.preview(access: .granted))
         .modelContainer(container)

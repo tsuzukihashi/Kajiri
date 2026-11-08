@@ -35,6 +35,9 @@ struct KajiriApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                #if DEBUG
+                .modifier(WideCanvasForChecking())
+                #endif
                 .environment(useCase)
                 .environment(calendar)
                 .onOpenURL { GoogleCalendarRepository.handle($0) }
@@ -49,3 +52,21 @@ struct KajiriApp: App {
         .modelContainer(container)
     }
 }
+
+#if DEBUG
+/// 確かめる用: 起動引数 -wideCanvas で、アプリ全体を iPhone Duo を開いた内側の大きさ（951×635）の枠に入れて縮めて映す。
+/// Device Hub で端末を開けないときに、2列の組み方をシミュレータで見るため
+private struct WideCanvasForChecking: ViewModifier {
+    func body(content: Content) -> some View {
+        if ProcessInfo.processInfo.arguments.contains("-wideCanvas") {
+            content
+                .frame(width: 951, height: 635)
+                .border(.red, width: 1)
+                .scaleEffect(0.39)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            content
+        }
+    }
+}
+#endif

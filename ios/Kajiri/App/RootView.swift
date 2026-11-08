@@ -69,7 +69,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
-    /// - -storeShot focus|handoff|plan|month|matrix|weekly: その画面を直接開く
+    /// - -storeShot focus|handoff|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {
         if let shot = StoreShots.shot {
@@ -85,6 +85,11 @@ struct RootView: View {
                 }
             case "plan":
                 router.tab = .plan
+            case "logs":
+                router.tab = .logs
+            case "monthView":
+                router.tab = .plan
+                router.planPath = [.month]
             case "month":
                 router.tab = .plan
                 PlanView.opensPrepScanOnAppear = true

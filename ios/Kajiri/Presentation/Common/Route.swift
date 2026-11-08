@@ -26,7 +26,7 @@ struct RouteDestinations: ViewModifier {
             switch route {
             case let .focus(id): FocusView(stepID: id)
             case let .handoff(id): HandoffView(stepID: id)
-            case let .log(id): LogDetailView(logID: id)
+            case let .log(id): LogDetailView(logID: id, isEmbedded: false)
             case .month: MonthView()
             }
         }

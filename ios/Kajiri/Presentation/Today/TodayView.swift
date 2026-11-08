@@ -26,8 +26,10 @@ struct TodayView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Theme.ground)
                 .navigationTitle(Text(now, format: .dateTime.month().day().weekday()))
+                .keepsBarsInSplit()
                 .routeDestinations()
         }
+        .measureColumns()
         .onChange(of: actual, initial: true) { settle(actual) }
         .onChange(of: router.todayPath.isEmpty) { settle(actual) }
     }

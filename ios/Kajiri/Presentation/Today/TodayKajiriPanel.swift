@@ -9,30 +9,34 @@ struct TodayKajiriPanel: View {
     let postponed: [Step]
     let onThrow: () -> Void
 
+    @Environment(\.columnLayout) private var layout
+
+    /// 横に広い画面では、左にカジリ、右に届いたものと頼んだ・待っている薪
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-                    VStack(spacing: 6) {
-                        KajiriImage(pose: .gnaw, size: 150)
-                        Text("いま、じぶんの番の薪はありません")
-                            .font(.system(size: 18, weight: .heavy))
-                        Text(message)
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.sub)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 12)
-                    if !inbox.isEmpty {
-                        KajiriInboxCard(steps: inbox)
-                    }
-                    if !waiting.isEmpty {
-                        WaitingList(steps: waiting)
-                    }
+            AdaptiveColumns(topPadding: 0, bottomPadding: 110) {
+                VStack(spacing: 6) {
+                    KajiriImage(pose: .gnaw, size: 150)
+                    Text("いま、じぶんの番の薪はありません")
+                        .font(.system(size: 18, weight: .heavy))
+                    Text(message)
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.sub)
+                        .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 18)
-                .padding(.bottom, 110)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 12)
+            } trailing: {
+                if !inbox.isEmpty {
+                    KajiriInboxCard(steps: inbox)
+                }
+                if !waiting.isEmpty {
+                    WaitingList(steps: waiting)
+                }
+                if layout.isSplit && inbox.isEmpty && waiting.isEmpty {
+                    NothingWaitingNote()
+                        .padding(.top, 12)
+                }
             }
             ThrowButton(action: onThrow)
         }
@@ -43,6 +47,23 @@ struct TodayKajiriPanel: View {
             return String(localized: "明日にまわした薪が\(postponed.count)本あります。気になることが増えたら、右下の＋から投げてください。")
         }
         return String(localized: "気になることが増えたら、右下の＋から投げてください。カジリが小さくかじります。")
+    }
+}
+
+/// 2列のとき、右の列に置く。カジリから届くものも、頼んだ・待っている薪も無いとき
+private struct NothingWaitingNote: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("届くもの・待っているものはありません")
+                .font(.system(size: 16, weight: .heavy))
+            Text("カジリの番の薪や、人に頼んだ薪があると、ここに並びます。")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.sub)
+        }
+        .foregroundStyle(Theme.ink)
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: .rect(cornerRadius: 22))
     }
 }
 

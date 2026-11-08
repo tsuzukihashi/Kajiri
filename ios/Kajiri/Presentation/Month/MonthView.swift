@@ -16,48 +16,43 @@ struct MonthView: View {
     var body: some View {
         @Bindable var router = router
         let now = AppClock.now
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-                MonthHeader(month: month, onMove: move)
-                if !calendar.canReadEvents {
-                    CalendarConnectCard(access: calendar.access) {
-                        Task { await calendar.requestAccess() }
-                    }
-                    .padding(.horizontal, -18)
+        // 横に広い画面では、左に月の表、右に選んだ日の予定
+        AdaptiveColumns(topPadding: 18, bottomPadding: 18) {
+            MonthHeader(month: month, onMove: move)
+            if !calendar.canReadEvents {
+                CalendarConnectCard(access: calendar.access) {
+                    Task { await calendar.requestAccess() }
                 }
-                MonthGrid(
-                    month: month,
-                    selected: selectedDay,
-                    now: now,
-                    dots: dots(),
-                    deadlineDays: Set(openDeadlineLogs().compactMap { $0.deadline.map(JapanDate.dayString) }),
-                    onSelect: { selectedDay = $0 }
-                )
-                .padding(12)
-                .background(.white, in: .rect(cornerRadius: 22))
-                MonthDayList(
-                    day: selectedDay,
-                    events: calendar.events(on: selectedDay),
-                    deadlines: openDeadlineLogs().filter { log in log.deadline.map { JapanDate.isSameDay($0, selectedDay) } ?? false },
-                    dueSteps: steps.filter { step in
-                        !step.isDone && step.owner == .me && (step.due.map { JapanDate.isSameDay($0, selectedDay) } ?? false)
-                    },
-                    canAddEvent: calendar.access == .granted,
-                    onEventTap: { selectedEvent = $0 },
-                    onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
-                )
+                .padding(.horizontal, -18)
             }
-            .padding(18)
+            MonthGrid(
+                month: month,
+                selected: selectedDay,
+                now: now,
+                dots: MonthGrid.dots(month: month, calendar: calendar),
+                deadlineDays: MonthGrid.deadlineDays(logs: logs),
+                onSelect: { selectedDay = $0 }
+            )
+            .padding(12)
+            .background(.white, in: .rect(cornerRadius: 22))
+        } trailing: {
+            MonthDayList(
+                day: selectedDay,
+                events: calendar.events(on: selectedDay),
+                deadlines: MonthGrid.openDeadlineLogs(logs).filter { log in log.deadline.map { JapanDate.isSameDay($0, selectedDay) } ?? false },
+                dueSteps: steps.filter { step in
+                    !step.isDone && step.owner == .me && (step.due.map { JapanDate.isSameDay($0, selectedDay) } ?? false)
+                },
+                canAddEvent: calendar.access == .granted,
+                onEventTap: { selectedEvent = $0 },
+                onAddEvent: { editor = calendar.newEventRequest(on: selectedDay, now: now) }
+            )
         }
         .background(Theme.ground)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        // 開いた月をまだ読んでいなければ Google から読む
-        .task(id: "\(JapanDate.dayString(month))|\(calendar.isGoogleConnected)") {
-            let weeks = MonthGrid.weeks(of: month)
-            guard let first = weeks.first?.first, let last = weeks.last?.last else { return }
-            await calendar.loadGoogle(from: first, to: JapanDate.addingDays(1, to: last))
-        }
+        .keepsBarsInSplit()
+        .loadsGoogleMonth(month)
         .sheet(item: $editor) { request in
             EventEditorView(request: request) { _ in editor = nil }
                 .ignoresSafeArea()
@@ -66,41 +61,12 @@ struct MonthView: View {
     }
 
     private func move(_ months: Int) {
-        let calendar = JapanDate.calendar
-        guard let next = calendar.date(byAdding: .month, value: months, to: month) else { return }
-        month = next
-        // 今月に戻ったら今日、ほかの月なら1日を選ぶ
-        if calendar.isDate(next, equalTo: AppClock.now, toGranularity: .month) {
-            selectedDay = AppClock.now
-        } else {
-            selectedDay = calendar.date(from: calendar.dateComponents([.year, .month], from: next)) ?? next
-        }
+        (month, selectedDay) = MonthGrid.moving(month, by: months)
     }
-
-    private func dots() -> [String: [Color]] {
-        let weeks = MonthGrid.weeks(of: month)
-        guard let first = weeks.first?.first, let last = weeks.last?.last else { return [:] }
-        var dots: [String: [Color]] = [:]
-        for event in calendar.events(from: first, to: JapanDate.addingDays(1, to: last)) {
-            var day = JapanDate.startOfDay(max(event.start, first))
-            let end = event.end.addingTimeInterval(-1)
-            while day <= end && day <= last {
-                dots[JapanDate.dayString(day), default: []].append(event.color)
-                day = JapanDate.addingDays(1, to: day)
-            }
-        }
-        return dots
-    }
-
-    /// まだ終わっていない丸太の締め切り（iPhone のカレンダーに入れたものは予定として出るので除く）
-    private func openDeadlineLogs() -> [Log] {
-        logs.filter { $0.deadline != nil && $0.deadlineEventID == nil && !$0.isFinished }
-    }
-
 }
 
 /// 「2026年11月」と、前の月・次の月
-private struct MonthHeader: View {
+struct MonthHeader: View {
     let month: Date
     let onMove: (Int) -> Void
 

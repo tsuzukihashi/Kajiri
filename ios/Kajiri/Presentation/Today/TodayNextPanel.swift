@@ -8,26 +8,47 @@ struct TodayNextPanel: View {
     let hint: FreeTimeHint?
     let onThrow: () -> Void
 
+    @Environment(\.columnLayout) private var layout
+
+    /// 横に広い画面では、左に「じぶんの番」（いまの1本と今日の薪）、右に「カジリの番」（カジリから届いたもの）
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
-                    if let first = picks.open.first {
-                        NextStepCard(step: first, remaining: picks.open.count, hint: hint)
-                    }
-                    if picks.open.count > 1 || !picks.done.isEmpty {
-                        TodayRestList(rest: Array(picks.open.dropFirst()), done: picks.done)
-                    }
-                    if !inbox.isEmpty {
-                        KajiriInboxCard(steps: inbox)
-                    }
+            AdaptiveColumns(topPadding: 8, bottomPadding: 110) {
+                if let first = picks.open.first {
+                    NextStepCard(step: first, remaining: picks.open.count, hint: hint)
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 8)
-                .padding(.bottom, 110)
+                if picks.open.count > 1 || !picks.done.isEmpty {
+                    TodayRestList(rest: Array(picks.open.dropFirst()), done: picks.done)
+                }
+            } trailing: {
+                if !inbox.isEmpty {
+                    KajiriInboxCard(steps: inbox)
+                } else if layout.isSplit {
+                    // 右の列が空っぽにならないように（1列のときは出さない）
+                    KajiriTurnEmptyNote()
+                }
             }
             ThrowButton(action: onThrow)
         }
+    }
+}
+
+/// 2列のとき、右の列（カジリの番）に置く。カジリが作っているものも、届いたものも無いとき
+private struct KajiriTurnEmptyNote: View {
+    var body: some View {
+        VStack(spacing: 10) {
+            KajiriImage(pose: .gnaw, size: 120)
+            Text("カジリの番の薪は、いまありません")
+                .font(.system(size: 17, weight: .heavy))
+            Text("下書きや調べものをカジリに任せた薪があると、作ったものがここに届きます。")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.sub)
+                .multilineTextAlignment(.center)
+        }
+        .foregroundStyle(Theme.ink)
+        .padding(20)
+        .frame(maxWidth: .infinity)
+        .background(.white, in: .rect(cornerRadius: 22))
     }
 }
 
@@ -174,6 +195,18 @@ struct StepLine: View {
         )
         .background(Theme.ground)
     }
+    .modelContainer(container)
+}
+
+#Preview("2列（Duo を開いた内側）", traits: .fixedLayout(width: 951, height: 635)) {
+    let (useCase, container) = LogUseCase.preview(filled: true)
+    let steps = useCase.allSteps()
+    let picks = TodayPicker.pick(from: steps, now: .now, limit: 3)
+    NavigationStack {
+        TodayNextPanel(picks: picks, inbox: steps.filter { $0.owner == .kajiri }, hint: nil, onThrow: {})
+            .background(Theme.ground)
+    }
+    .environment(\.columnLayout, .split(leading: 455, gutter: 40))
     .modelContainer(container)
 }
 
