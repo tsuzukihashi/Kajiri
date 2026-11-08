@@ -12,12 +12,17 @@ struct DebugDataSection: View {
     let logCount: Int
     let stepCount: Int
     let phase: Phase
+    let onReplayOnboarding: () -> Void
     let onDelete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionBox(title: "Debug", detail: String(localized: "TestFlight と開発中の版だけ")) {
                 VStack(alignment: .leading, spacing: 12) {
+                    Button(action: onReplayOnboarding) {
+                        Label("オンボーディングをもう一度見る", systemImage: "book.pages")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
                     Text("いま残っているデータ: 丸太\(logCount)本・薪\(stepCount)本")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.sub)
@@ -61,25 +66,25 @@ struct DebugDataSection: View {
 }
 
 #Preview("消す前") {
-    DebugDataSection(logCount: 4, stepCount: 18, phase: .idle, onDelete: {})
+    DebugDataSection(logCount: 4, stepCount: 18, phase: .idle, onReplayOnboarding: {}, onDelete: {})
         .padding()
         .background(Theme.ground)
 }
 
 #Preview("消している") {
-    DebugDataSection(logCount: 4, stepCount: 18, phase: .deleting, onDelete: {})
+    DebugDataSection(logCount: 4, stepCount: 18, phase: .deleting, onReplayOnboarding: {}, onDelete: {})
         .padding()
         .background(Theme.ground)
 }
 
 #Preview("消せなかった") {
-    DebugDataSection(logCount: 4, stepCount: 18, phase: .failed("保存できませんでした。"), onDelete: {})
+    DebugDataSection(logCount: 4, stepCount: 18, phase: .failed("保存できませんでした。"), onReplayOnboarding: {}, onDelete: {})
         .padding()
         .background(Theme.ground)
 }
 
 #Preview("データなし") {
-    DebugDataSection(logCount: 0, stepCount: 0, phase: .idle, onDelete: {})
+    DebugDataSection(logCount: 0, stepCount: 0, phase: .idle, onReplayOnboarding: {}, onDelete: {})
         .padding()
         .background(Theme.ground)
 }

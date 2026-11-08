@@ -10,6 +10,11 @@ struct RootView: View {
     @Query(sort: \Log.createdAt) private var logs: [Log]
     @Query(sort: \Step.order) private var steps: [Step]
     @State private var router = AppRouter()
+    /// オンボーディングを見終わったか（設定の Debug で false に戻すと、もう一度出る）
+    @AppStorage(OnboardingGate.seenKey) private var hasSeenOnboarding = false
+    @State private var showsOnboarding = false
+    /// オンボーディングの最後で「最初の丸太を投げる」を押した（閉じきってから投げるシートを開く）
+    @State private var throwsAfterOnboarding = false
 
     var body: some View {
         @Bindable var router = router
@@ -18,6 +23,28 @@ struct RootView: View {
         TodayView()
         .tint(Theme.ink)
         .environment(router)
+        .fullScreenCover(isPresented: $showsOnboarding, onDismiss: {
+            // 閉じきってから開く（閉じる途中でシートを出すと、そのシートごと消える）
+            if throwsAfterOnboarding {
+                throwsAfterOnboarding = false
+                router.throwNew()
+            }
+        }) {
+            OnboardingView { startsThrowing in
+                throwsAfterOnboarding = startsThrowing
+                hasSeenOnboarding = true
+                showsOnboarding = false
+            }
+            .measureColumns()
+        }
+        .onAppear {
+            showsOnboarding = (!hasSeenOnboarding || ProcessInfo.processInfo.arguments.contains("-showOnboarding"))
+                && !OnboardingGate.isSuppressedByLaunchArguments
+        }
+        // 設定の Debug で「もう一度見る」を押したとき
+        .onChange(of: hasSeenOnboarding) { _, seen in
+            if !seen { showsOnboarding = true }
+        }
         .sheet(item: $router.throwRequest) { request in
             ThrowSheet(request: request)
         }
@@ -62,6 +89,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
+    /// - -showOnboarding: オンボーディングを出す（-storeShots と一緒でも出す）
     /// - -storeShot focus|handoff|checklist|procedures|newProcedures|settings|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {

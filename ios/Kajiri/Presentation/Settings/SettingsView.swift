@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Query private var logs: [Log]
     @Query private var steps: [Step]
 
+    @AppStorage(OnboardingGate.seenKey) private var hasSeenOnboarding = false
     @State private var isConfirmingDelete = false
     @State private var deletePhase = DebugDataSection.Phase.idle
 
@@ -29,6 +30,8 @@ struct SettingsView: View {
                         logCount: logs.count,
                         stepCount: steps.count,
                         phase: deletePhase,
+                        // 見終わった印を外すと、いちばん上（RootView）がオンボーディングを出す
+                        onReplayOnboarding: { hasSeenOnboarding = false },
                         onDelete: { isConfirmingDelete = true }
                     )
                 }
