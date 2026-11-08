@@ -138,12 +138,13 @@ struct HandoffView: View {
         return WorkChecklistProgress(checked: progress.checkedCount(in: document), total: document.checkIDs.count)
     }
 
-    /// カジリが作ったもの。チェックリストなら押してチェックでき、メモを書きこめる。それ以外は文のまま
+    /// カジリが作ったもの。一覧は項目ごとに分けて見せ（チェックリストなら押してチェックでき、メモを書きこめる）、
+    /// メールの下書きのような地の文は、送る形のまま見せる
     @ViewBuilder
     private func readyBody(_ step: Step) -> some View {
         let body = cleanBody(step)
         let document = WorkDocument.parse(body)
-        if document.hasChecklist {
+        if document.isStructured {
             WorkChecklistView(
                 document: document,
                 progress: useCase.workProgress(of: step),
@@ -155,7 +156,7 @@ struct HandoffView: View {
             SectionBox(title: "カジリが作ったもの", detail: nil) {
                 Text(body)
                     .font(.system(size: 15))
-                    .lineSpacing(4)
+                    .lineSpacing(6)
                     .textSelection(.enabled)
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -163,11 +164,11 @@ struct HandoffView: View {
         }
     }
 
-    /// コピー・送る・受け取った。チェックリストは、チェックとメモを入れた形で渡す
+    /// コピー・送る・受け取った。一覧は、チェック・メモ・選んだものを入れた形で渡す
     private func readyActions(_ step: Step) -> some View {
         let body = cleanBody(step)
         let document = WorkDocument.parse(body)
-        let text = document.hasChecklist ? document.exportText(progress: useCase.workProgress(of: step)) : body
+        let text = document.isStructured ? document.exportText(progress: useCase.workProgress(of: step)) : body
         return VStack(spacing: 10) {
             HStack(spacing: 10) {
                 Button(copied ? "コピーしました" : "コピーする") {
@@ -212,6 +213,17 @@ struct HandoffView: View {
     step.workState = .ready
     step.workTitle = "確定申告で使う書類の一覧"
     step.workBody = "・源泉徴収票\n・医療費の領収書\n・マイナンバーカード"
+    return NavigationStack { HandoffView(stepID: step.uuid) }
+        .environment(useCase)
+        .modelContainer(container)
+}
+
+#Preview("前の版の長い手続きの並び") {
+    let (useCase, container) = LogUseCase.preview(filled: true)
+    let step = useCase.allSteps().first { $0.owner == .kajiri }!
+    step.workState = .ready
+    step.workTitle = "住所変更の手続き一覧（期限の目安つき）"
+    step.workBody = StoreShots.longProcedureSample
     return NavigationStack { HandoffView(stepID: step.uuid) }
         .environment(useCase)
         .modelContainer(container)

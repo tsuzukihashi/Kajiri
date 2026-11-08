@@ -18,13 +18,15 @@ final class ChecklistTests: XCTestCase {
         item.tap()
         XCTAssertTrue(app.staticTexts["2"].waitForExistence(timeout: 5), "もう一度押すと外れて 2 に戻る")
 
-        // メモ欄に書いて、外を押すとキーボードが下がる
+        // メモ欄に書いて、外を押すとキーボードが下がる。
+        // 外側の画面（466x678）では欄が下の端にかかるので、見える所まで送ってから押す
         let note = app.textViews.firstMatch.exists ? app.textViews.firstMatch : app.textFields.firstMatch
         XCTAssertTrue(note.waitForExistence(timeout: 5))
+        app.scrollViews.firstMatch.swipeUp()
         note.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), "メモ欄を押すとキーボードが出る")
         app.typeText("。金物は大工さん")
-        app.staticTexts["押してチェックしながら使う"].tap()
+        app.staticTexts["メモ"].tap()
         let gone = NSPredicate(format: "exists == false")
         expectation(for: gone, evaluatedWith: app.keyboards.firstMatch)
         waitForExpectations(timeout: 5)

@@ -69,7 +69,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
-    /// - -storeShot focus|handoff|checklist|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
+    /// - -storeShot focus|handoff|checklist|procedures|newProcedures|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {
         if let shot = StoreShots.shot {
@@ -90,6 +90,14 @@ struct RootView: View {
                     step.workBody = StoreShots.checklistSample
                     // 2つ確かめて、メモを1つ書いたところ
                     step.workProgressJSON = WorkProgress(toggled: ["4", "5"], notes: ["10": String(localized: "南側のベランダにつける")]).encoded()
+                    router.todayPath = [.handoff(step.uuid)]
+                }
+            case "procedures", "newProcedures":
+                // カジリが作った住所変更の一覧が届いたときの画面（前の版の長い文／直した指示で作った短い文）
+                if let step = steps.first(where: { $0.owner == .kajiri && $0.workState == .ready }) {
+                    step.workTitle = String(localized: "住所変更の手続き一覧（期限の目安つき）")
+                    step.workBody = shot == "procedures" ? StoreShots.longProcedureSample : StoreShots.shortProcedureSample
+                    step.workProgressJSON = nil
                     router.todayPath = [.handoff(step.uuid)]
                 }
             case "plan":
