@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// タブ3つ（今日・丸太・予定）と、アプリ全体で1つだけ出すシート（投げる・週のふりかえり）。
+/// 今日の画面1つ（丸太の一覧・予定・設定はそこから開く）と、アプリ全体で1つだけ出すシート（投げる・週のふりかえり）。
 /// 通知の入れ直し・Siri や共有シートから届いたメモも、ここで受ける
 struct RootView: View {
     @Environment(CalendarUseCase.self) private var calendar
@@ -13,17 +13,9 @@ struct RootView: View {
 
     var body: some View {
         @Bindable var router = router
-        TabView(selection: $router.tab) {
-            Tab("今日", systemImage: "sun.max", value: AppRouter.Tab.today) {
-                TodayView()
-            }
-            Tab("丸太", systemImage: "tray.full", value: AppRouter.Tab.logs) {
-                LogsView()
-            }
-            Tab("予定", systemImage: "calendar", value: AppRouter.Tab.plan) {
-                PlanView()
-            }
-        }
+        // タブは置かない。ADHD の人がタブを行き来すると「いまどこで何をしていたか」を見失うので、
+        // 画面は今日1つにして、丸太の一覧・予定・設定は今日の右上から開く（戻ると必ず今日）
+        TodayView()
         .tint(Theme.ink)
         .environment(router)
         .sheet(item: $router.throwRequest) { request in
@@ -104,18 +96,17 @@ struct RootView: View {
             case "settings":
                 router.todayPath = [.settings]
             case "plan":
-                router.tab = .plan
+                router.todayPath = [.plan]
             case "logs":
-                router.tab = .logs
+                router.todayPath = [.logs]
             case "monthView":
-                router.tab = .plan
-                router.planPath = [.month]
+                router.todayPath = [.plan, .month]
             case "month":
-                router.tab = .plan
                 PlanView.opensPrepScanOnAppear = true
+                router.todayPath = [.plan]
             case "matrix":
-                router.tab = .logs
                 LogsView.opensMatrixOnAppear = true
+                router.todayPath = [.logs]
             case "weekly":
                 router.showsWeekly = true
             default:

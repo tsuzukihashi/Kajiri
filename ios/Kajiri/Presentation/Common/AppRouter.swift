@@ -5,16 +5,8 @@ import Observation
 @MainActor
 @Observable
 final class AppRouter {
-    enum Tab: Hashable {
-        case today
-        case logs
-        case plan
-    }
-
-    var tab: Tab = .today
+    /// 画面は「今日」1つ。丸太の一覧・予定・設定は、ここから開いて、戻ると今日に帰る
     var todayPath: [Route] = []
-    var logsPath: [Route] = []
-    var planPath: [Route] = []
     var throwRequest: ThrowRequest?
     var showsWeekly = false
 
@@ -24,7 +16,6 @@ final class AppRouter {
 
     /// Siri・共有シートから投げられたとき。今日のタブに戻してから開く
     func throwFromOutside(memo: String) {
-        tab = .today
         todayPath = []
         throwRequest = ThrowRequest(memo: memo, sourceEventID: nil)
     }

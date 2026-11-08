@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// 丸太のタブ。投げたもの全部と、どこまで進んだか。丸太ごとに見るか、4象限で見るかを切りかえる
+/// 丸太の一覧（今日の画面の右上から開く）。投げたもの全部と、どこまで進んだか。丸太ごとに見るか、4象限で見るかを切りかえる
 struct LogsView: View {
     enum Layout: Hashable {
         case logs
@@ -20,8 +20,7 @@ struct LogsView: View {
     @State private var selectedLogID: UUID?
 
     var body: some View {
-        @Bindable var router = router
-        NavigationStack(path: $router.logsPath) {
+        Group {
             LogsBody(
                 logs: logs,
                 layout: $layout,
@@ -42,9 +41,7 @@ struct LogsView: View {
                 }
             }
             .keepsBarsInSplit()
-            .routeDestinations()
         }
-        .measureColumns()
         #if DEBUG
         .onAppear {
             if Self.opensMatrixOnAppear {

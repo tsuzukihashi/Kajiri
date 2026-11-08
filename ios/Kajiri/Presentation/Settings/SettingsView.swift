@@ -59,7 +59,6 @@ struct SettingsView: View {
             deletePhase = .done
             try? await Task.sleep(for: .milliseconds(700))
             withAnimation(.easeInOut(duration: 0.3)) {
-                router.tab = .today
                 router.todayPath = []
             }
         } catch {

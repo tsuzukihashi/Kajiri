@@ -12,6 +12,10 @@ enum Route: Hashable {
     case month
     /// 設定（アプリと自分のこと。確かめる版では Debug も）
     case settings
+    /// 丸太の一覧（投げたもの全部）
+    case logs
+    /// 予定（カレンダー）
+    case plan
 }
 
 extension Route {
@@ -21,7 +25,7 @@ extension Route {
     }
 }
 
-/// 各タブの NavigationStack のいちばん下にだけ付ける。子の画面には付けない
+/// 今日の NavigationStack のいちばん下にだけ付ける（画面はここ1つから全部開く）。子の画面には付けない
 struct RouteDestinations: ViewModifier {
     func body(content: Content) -> some View {
         content.navigationDestination(for: Route.self) { route in
@@ -31,6 +35,8 @@ struct RouteDestinations: ViewModifier {
             case let .log(id): LogDetailView(logID: id, isEmbedded: false)
             case .month: MonthView()
             case .settings: SettingsView()
+            case .logs: LogsView()
+            case .plan: PlanView()
             }
         }
     }

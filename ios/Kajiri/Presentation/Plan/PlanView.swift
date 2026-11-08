@@ -26,7 +26,7 @@ struct PlanView: View {
         @Bindable var router = router
         let now = AppClock.now
         let isToday = JapanDate.isSameDay(selectedDay, now)
-        NavigationStack(path: $router.planPath) {
+        Group {
             ColumnReader { columns in
                 switch columns {
                 case .single:
@@ -82,9 +82,7 @@ struct PlanView: View {
             .navigationTitle(Text(selectedDay, format: .dateTime.month().day().weekday()))
             .toolbar { toolbar(now: now, isToday: isToday) }
             .keepsBarsInSplit()
-            .routeDestinations()
         }
-        .measureColumns()
         // 「今日」や週の帯で別の月の日を選んだら、月の表もその月にする
         .onChange(of: selectedDay) { _, day in
             if !JapanDate.calendar.isDate(day, equalTo: month, toGranularity: .month) { month = day }

@@ -86,8 +86,8 @@ final class DemoVideoTests: XCTestCase {
         tap(app.buttons["受け取った"], "受け取った", timeout: 10)
         mark("received")
         pause(3)
-        // 5. 予定のタブ
-        tap(app.tabBars.buttons["予定"].firstMatch, "予定のタブ", timeout: 10)
+        // 5. 予定（今日の右上から開く）
+        tap(app.buttons["予定"].firstMatch, "予定", timeout: 10)
         mark("plan")
         pause(5)
         app.swipeUp()
@@ -107,8 +107,10 @@ final class DemoVideoTests: XCTestCase {
         pause(6)
         app.swipeDown(velocity: .fast)
         pause(2)
-        // 7. 丸太のタブと4象限
-        tap(app.tabBars.buttons["丸太"].firstMatch, "丸太のタブ", timeout: 10)
+        // 7. 丸太の一覧と4象限（今日に戻って、右上から開く）
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        pause(1)
+        tap(app.buttons["丸太"].firstMatch, "丸太", timeout: 10)
         mark("logs")
         pause(4)
         tap(app.buttons["4象限"], "4象限", timeout: 10)

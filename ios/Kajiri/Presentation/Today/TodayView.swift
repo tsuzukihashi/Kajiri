@@ -27,6 +27,18 @@ struct TodayView: View {
                 .background(Theme.ground)
                 .navigationTitle(Text(now, format: .dateTime.month().day().weekday()))
                 .toolbar {
+                    // 画面は今日1つ。ほかの物（予定・丸太）と設定は、ここから開いて、戻ると今日に帰る
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        NavigationLink(value: Route.plan) {
+                            Image(systemName: "calendar")
+                        }
+                        .accessibilityLabel(Text("予定"))
+                        NavigationLink(value: Route.logs) {
+                            Image(systemName: "tray.full")
+                        }
+                        .accessibilityLabel(Text("丸太"))
+                    }
+                    ToolbarSpacer(.fixed, placement: .topBarTrailing)
                     ToolbarItem(placement: .topBarTrailing) {
                         NavigationLink(value: Route.settings) {
                             Image(systemName: "gearshape")
