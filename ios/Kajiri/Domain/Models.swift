@@ -74,6 +74,8 @@ final class Step {
     var workStateRaw: String
     var workTitle: String?
     var workBody: String?
+    /// カジリが作ったチェックリストの、チェックした項目と書いたメモ（WorkProgress を JSON にしたもの）
+    var workProgressJSON: String?
 
     var log: Log?
 
@@ -98,6 +100,7 @@ final class Step {
         self.workStateRaw = WorkState.idle.rawValue
         self.workTitle = nil
         self.workBody = nil
+        self.workProgressJSON = nil
     }
 
     var owner: StepOwner {

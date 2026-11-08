@@ -69,7 +69,7 @@ struct RootView: View {
 
     #if DEBUG
     /// 確かめる・デモやスクリーンショットを撮るとき用の起動引数
-    /// - -storeShot focus|handoff|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
+    /// - -storeShot focus|handoff|checklist|plan|logs|monthView|month|matrix|weekly: その画面を直接開く
     /// - -demoThrow "メモ"（-demoThrowAfter 秒）: メモを入れた投げるシートを開く
     private func openDebugEntry() {
         if let shot = StoreShots.shot {
@@ -81,6 +81,15 @@ struct RootView: View {
                 }
             case "handoff":
                 if let step = steps.first(where: { $0.owner == .kajiri && $0.workState == .ready && $0.title.contains("要点") }) {
+                    router.todayPath = [.handoff(step.uuid)]
+                }
+            case "checklist":
+                // カジリがチェックリストを作って届けたときの画面
+                if let step = steps.first(where: { $0.owner == .kajiri && $0.workState == .ready }) {
+                    step.workTitle = String(localized: "木工事完了の立会いで使うチェックリスト")
+                    step.workBody = StoreShots.checklistSample
+                    // 2つ確かめて、メモを1つ書いたところ
+                    step.workProgressJSON = WorkProgress(toggled: ["4", "5"], notes: ["10": String(localized: "南側のベランダにつける")]).encoded()
                     router.todayPath = [.handoff(step.uuid)]
                 }
             case "plan":

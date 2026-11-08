@@ -9,6 +9,8 @@ struct HandoffView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.columnLayout) private var columns
     @State private var copied = false
+    /// 書いているメモの欄（「受け取った」やスクロールで下げる）
+    @FocusState private var focusedNote: String?
 
     var body: some View {
         Group {
@@ -30,20 +32,32 @@ struct HandoffView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         header(step)
-                        stateContent(step)
+                        if step.workState == .ready {
+                            if let progress = checklistProgress(step) { progress }
+                            readyBody(step)
+                            readyActions(step)
+                        } else {
+                            stateContent(step)
+                        }
                     }
                     .padding(.horizontal, 18)
                     .padding(.vertical, 20)
                 }
+                .scrollDismissesKeyboard(.interactively)
             case let .split(leading, gutter):
-                // 横に広い画面: 左にだれが何を作ったか、右に作ったものと「受け取った」
+                // 横に広い画面: 左にだれが何を作ったかと押すところ、右に作ったもの
                 HStack(spacing: 0) {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
                             header(step)
-                            Text("見て、よければ使うだけ。合わなければ、使わなくて大丈夫です。")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Theme.sub)
+                            if step.workState == .ready {
+                                if let progress = checklistProgress(step) { progress }
+                                readyActions(step)
+                            } else {
+                                Text("見て、よければ使うだけ。合わなければ、使わなくて大丈夫です。")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(Theme.sub)
+                            }
                         }
                         .padding(.horizontal, 18)
                         .padding(.vertical, 20)
@@ -51,13 +65,23 @@ struct HandoffView: View {
                     .frame(width: leading)
                     Color.clear.frame(width: gutter)
                     ScrollView {
-                        stateContent(step)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 20)
+                        Group {
+                            if step.workState == .ready {
+                                readyBody(step)
+                            } else {
+                                stateContent(step)
+                            }
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 20)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                 }
             }
         }
+        // メモの欄の外を押したら、キーボードを下げる
+        .contentShape(Rectangle())
+        .onTapGesture { focusedNote = nil }
     }
 
     private func header(_ step: Step) -> some View {
@@ -73,6 +97,7 @@ struct HandoffView: View {
         }
     }
 
+    /// 届く前・つまずいたとき
     @ViewBuilder
     private func stateContent(_ step: Step) -> some View {
         switch step.workState {
@@ -85,7 +110,7 @@ struct HandoffView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.white, in: .rect(cornerRadius: 18))
         case .ready:
-            readyContent(step)
+            EmptyView()
         case .failed:
             VStack(alignment: .leading, spacing: 10) {
                 Text(step.workBody ?? String(localized: "うまく作れませんでした。"))
@@ -100,10 +125,33 @@ struct HandoffView: View {
         }
     }
 
-    private func readyContent(_ step: Step) -> some View {
-        // 前の版で保存した下書きに Markdown が残っていても、記号を見せない
-        let body = PlainText.clean(step.workBody ?? "")
-        return VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+    /// 前の版で保存した下書きに Markdown が残っていても、記号を見せない
+    private func cleanBody(_ step: Step) -> String {
+        PlainText.clean(step.workBody ?? "")
+    }
+
+    /// チェックリストなら「何項目のうちいくつ確かめたか」
+    private func checklistProgress(_ step: Step) -> WorkChecklistProgress? {
+        let document = WorkDocument.parse(cleanBody(step))
+        guard document.hasChecklist else { return nil }
+        let progress = useCase.workProgress(of: step)
+        return WorkChecklistProgress(checked: progress.checkedCount(in: document), total: document.checkIDs.count)
+    }
+
+    /// カジリが作ったもの。チェックリストなら押してチェックでき、メモを書きこめる。それ以外は文のまま
+    @ViewBuilder
+    private func readyBody(_ step: Step) -> some View {
+        let body = cleanBody(step)
+        let document = WorkDocument.parse(body)
+        if document.hasChecklist {
+            WorkChecklistView(
+                document: document,
+                progress: useCase.workProgress(of: step),
+                onToggle: { useCase.toggleCheck(step, id: $0) },
+                onNote: { useCase.setNote(step, id: $0, text: $1) },
+                focusedNote: $focusedNote
+            )
+        } else {
             SectionBox(title: "カジリが作ったもの", detail: nil) {
                 Text(body)
                     .font(.system(size: 15))
@@ -112,34 +160,46 @@ struct HandoffView: View {
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    Button(copied ? "コピーしました" : "コピーする") {
-                        UIPasteboard.general.string = body
-                        copied = true
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                    ShareLink(item: body) {
-                        Label("送る・使う", systemImage: "square.and.arrow.up")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(Theme.ink)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Theme.chip, in: .rect(cornerRadius: 14))
-                    }
+        }
+    }
+
+    /// コピー・送る・受け取った。チェックリストは、チェックとメモを入れた形で渡す
+    private func readyActions(_ step: Step) -> some View {
+        let body = cleanBody(step)
+        let document = WorkDocument.parse(body)
+        let text = document.hasChecklist ? document.exportText(progress: useCase.workProgress(of: step)) : body
+        return VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Button(copied ? "コピーしました" : "コピーする") {
+                    focusedNote = nil
+                    UIPasteboard.general.string = text
+                    copied = true
                 }
-                Button("受け取った") {
-                    useCase.complete(step, now: AppClock.now)
-                    dismiss()
+                .buttonStyle(SecondaryButtonStyle())
+                ShareLink(item: text) {
+                    Label("送る・使う", systemImage: "square.and.arrow.up")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Theme.ink)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .background(Theme.chip, in: .rect(cornerRadius: 14))
                 }
-                .buttonStyle(PrimaryButtonStyle())
             }
+            Button("受け取った") {
+                focusedNote = nil
+                useCase.complete(step, now: AppClock.now)
+                dismiss()
+            }
+            .buttonStyle(PrimaryButtonStyle())
         }
     }
 
     private func statusText(_ step: Step) -> String {
         switch step.workState {
         case .idle, .working: String(localized: "カジリの番")
-        case .ready: String(localized: "見て、よければ使うだけ")
+        case .ready:
+            WorkDocument.parse(cleanBody(step)).hasChecklist
+                ? String(localized: "押してチェックしながら使う")
+                : String(localized: "見て、よければ使うだけ")
         case .failed: String(localized: "カジリがつまずきました")
         }
     }
@@ -152,6 +212,17 @@ struct HandoffView: View {
     step.workState = .ready
     step.workTitle = "確定申告で使う書類の一覧"
     step.workBody = "・源泉徴収票\n・医療費の領収書\n・マイナンバーカード"
+    return NavigationStack { HandoffView(stepID: step.uuid) }
+        .environment(useCase)
+        .modelContainer(container)
+}
+
+#Preview("チェックリストが届いた") {
+    let (useCase, container) = LogUseCase.preview(filled: true)
+    let step = useCase.allSteps().first { $0.owner == .kajiri }!
+    step.workState = .ready
+    step.workTitle = "木工事完了の立会いで使うチェックリスト"
+    step.workBody = "【1 物干し竿】\n見る場所\n□ 物干し金物をつける位置\n□ 竿の長さが入る幅があるか\n聞くこと\n□ 金物はいつ、誰がつけるか\nメモ：\n【2 住所変更】\n□ 表札・ポストをつける位置"
     return NavigationStack { HandoffView(stepID: step.uuid) }
         .environment(useCase)
         .modelContainer(container)

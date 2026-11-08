@@ -7,6 +7,28 @@ import SwiftData
 /// ネットにつながないので、何度撮っても同じ絵になる。App Store 版には入らない。
 /// 撮る手順は fastlane/Snapfile と KajiriUITests/ScreenshotTests.swift
 enum StoreShots {
+    /// カジリが作るチェックリストの見本（-storeShot checklist）
+    static let checklistSample = """
+    【使い方】
+    ・見たら □ を ■ に変える
+    【1 物干し竿】
+    見る場所
+    □ 物干し金物をつける位置（室内・ベランダ）
+    □ 壁や天井の裏に下地（補強の板）が入っているか
+    □ 竿の長さが入る幅があるか
+    聞くこと
+    □ 金物はいつ、誰がつけるか
+    □ 高さは今から変えられるか
+    メモ：
+    【2 住所変更】
+    見る場所
+    □ 表札・ポストをつける位置
+    聞くこと
+    □ 引き渡し日（引っ越し日を決めるため）
+    □ 正しい住所の書き方
+    メモ：
+    """
+
     static var isOn: Bool { ProcessInfo.processInfo.arguments.contains("-storeShots") }
 
     /// -storeShot focus / handoff / month / weekly / matrix: ホームから直接その画面を開く

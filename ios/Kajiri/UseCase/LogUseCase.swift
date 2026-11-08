@@ -77,6 +77,26 @@ final class LogUseCase {
         try? context.save()
     }
 
+    // MARK: カジリが作ったチェックリスト
+
+    func workProgress(of step: Step) -> WorkProgress {
+        WorkProgress.decode(step.workProgressJSON)
+    }
+
+    func toggleCheck(_ step: Step, id: String) {
+        var progress = workProgress(of: step)
+        progress.toggle(id)
+        step.workProgressJSON = progress.encoded()
+        try? context.save()
+    }
+
+    func setNote(_ step: Step, id: String, text: String) {
+        var progress = workProgress(of: step)
+        progress.notes[id] = text
+        step.workProgressJSON = progress.encoded()
+        try? context.save()
+    }
+
     func undo(_ step: Step) {
         step.isDone = false
         step.doneAt = nil
