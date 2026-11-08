@@ -19,6 +19,9 @@ final class PrepScanViewModel {
     func scan(calendar: CalendarUseCase, linked: Set<String>, now: Date) async {
         let events = calendar.upcomingForPrep(now: now, excluding: linked)
         guard !events.isEmpty else {
+            // 結果が前と同じ文でも、見直したことが分かるよう、少しのあいだ「見ています」を出す
+            phase = .scanning
+            try? await Task.sleep(for: .milliseconds(700))
             phase = .result(PrepResult(picks: [], comment: String(localized: "この先2週間に、まだ丸太にしていない予定はないな。")))
             return
         }

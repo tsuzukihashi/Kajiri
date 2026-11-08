@@ -18,6 +18,8 @@ final class ThrowViewModel {
     private(set) var phase: Phase = .editing
     /// カジリがカレンダーに入れた予定
     private(set) var placement = EventPlacement.empty
+    /// 予定を消せなかったなど、押した結果を伝えたいこと（アラートで出す）
+    var notice: String?
 
     init(memo: String, sourceEventID: String?) {
         self.memo = memo
@@ -50,12 +52,19 @@ final class ThrowViewModel {
     }
 
     func undo(_ event: PlacedEvent, calendar: CalendarUseCase) {
-        placement = calendar.undo(event, in: placement)
+        let updated = calendar.undo(event, in: placement)
+        if updated == placement {
+            notice = String(localized: "カレンダーから予定を消せませんでした。カレンダーのアプリから消してください。")
+        }
+        placement = updated
     }
 
     /// 書き直すなら、入れた予定も取り消す（投げ直すと二重に入る）
     func backToEditing(calendar: CalendarUseCase) {
-        calendar.undoAll(in: placement)
+        let failed = calendar.undoAll(in: placement)
+        if failed > 0 {
+            notice = String(localized: "入れた予定のうち\(failed)件を消せませんでした。カレンダーのアプリから消してください。")
+        }
         placement = .empty
         phase = .editing
     }

@@ -49,14 +49,24 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
-/// グレーの角丸ボタン（2番目のボタン）
+/// グレーの角丸ボタン（2番目のボタン）。押せないときは薄くする（押しても反応しないように見せない）
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 15, weight: .bold))
-            .foregroundStyle(Theme.ink)
-            .frame(maxWidth: .infinity, minHeight: 48)
-            .background(Theme.chip.opacity(configuration.isPressed ? 0.7 : 1), in: .rect(cornerRadius: 14))
+        SecondaryButtonBody(configuration: configuration)
+    }
+
+    private struct SecondaryButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Theme.ink)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .background(Theme.chip.opacity(configuration.isPressed ? 0.7 : 1), in: .rect(cornerRadius: 14))
+                .opacity(isEnabled ? 1 : 0.45)
+        }
     }
 }
 

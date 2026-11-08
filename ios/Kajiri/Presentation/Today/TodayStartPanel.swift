@@ -63,11 +63,24 @@ struct TodayStartPanel: View {
         VStack(spacing: 8) {
             Button("最初の丸太を投げる", action: onThrow)
                 .buttonStyle(PrimaryButtonStyle())
-            if access == .notDetermined {
-                Button("先にカレンダーの予定を並べる", action: onConnect)
+            // つないだ・断った結果を必ず見せる（ボタンが消えるだけにしない）
+            switch access {
+            case .notDetermined:
+                Button("先にカレンダーをつなぐ", action: onConnect)
                     .buttonStyle(SecondaryButtonStyle())
+            case .granted:
+                Label("カレンダーとつながりました。予定は「予定」のタブに並びます。", systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Theme.sub)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            case .denied:
+                Label("カレンダーは使わない設定です。あとから設定アプリで変えられます。", systemImage: "calendar.badge.minus")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Theme.sub)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: access)
     }
 }
 

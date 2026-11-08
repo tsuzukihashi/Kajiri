@@ -62,12 +62,19 @@ struct TodayView: View {
                 doneToday: picks.done.count,
                 totalDone: steps.filter(\.isDone).count,
                 inbox: inbox,
+                isClosed: finishedDay == JapanDate.dayString(now),
+                hasMore: !TodayPicker.pick(from: steps, now: now, limit: TodayPicker.dailyCount + extraCount + 1).open.isEmpty,
                 onWeekly: { router.showsWeekly = true },
                 onMore: {
-                    finishedDay = ""
-                    extraCount += 1
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        finishedDay = ""
+                        extraCount += 1
+                    }
                 },
-                onFinish: { finishedDay = JapanDate.dayString(now) }
+                onFinish: {
+                    withAnimation(.spring(duration: 0.45, bounce: 0.25)) { finishedDay = JapanDate.dayString(now) }
+                },
+                onThrow: { router.throwNew() }
             )
         }
     }

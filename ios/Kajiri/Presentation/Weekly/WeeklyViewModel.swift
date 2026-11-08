@@ -25,6 +25,7 @@ final class WeeklyViewModel {
 
     /// 前の週・次の週へ（来週より先には行かない）
     func move(_ weeks: Int, useCase: LogUseCase, now: Date) {
+        guard phase != .writing else { return }
         let next = JapanDate.addingDays(weeks * 7, to: weekStart)
         guard next <= JapanDate.week(containing: now)[0] else { return }
         weekStart = next
@@ -32,8 +33,11 @@ final class WeeklyViewModel {
     }
 
     func canMoveForward(now: Date) -> Bool {
-        weekStart < JapanDate.week(containing: now)[0]
+        phase != .writing && weekStart < JapanDate.week(containing: now)[0]
     }
+
+    /// 書いてもらっている最中は前の週にも戻れない（書き終わった文が、別の週の見出しの下に出てしまう）
+    var canMoveBack: Bool { phase != .writing }
 
     /// 前に書いてもらったものがあれば出す
     func load(useCase: LogUseCase) {

@@ -121,6 +121,13 @@ struct PlanView: View {
                 Task { await calendar.requestAccess() }
             }
             .padding(.horizontal, 18)
+        } else if calendar.isGoogleConnected, let message = calendar.googleMessage {
+            // 読めなかっただけなのに、予定が無いように見せない
+            GoogleLoadFailedRow(message: message, isWorking: calendar.isGoogleWorking) {
+                Task { await calendar.retryGoogle(now: AppClock.now) }
+            }
+            .padding(.horizontal, 18)
+            .transition(.opacity)
         }
     }
 

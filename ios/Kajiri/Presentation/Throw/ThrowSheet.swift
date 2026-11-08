@@ -14,6 +14,19 @@ struct ThrowSheet: View {
     }
 
     var body: some View {
+        content
+            .alert(
+                "予定を消せませんでした",
+                isPresented: Binding(get: { viewModel.notice != nil }, set: { if !$0 { viewModel.notice = nil } })
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.notice ?? "")
+            }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch viewModel.phase {
         case .editing, .splitting, .failed:
             editor

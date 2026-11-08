@@ -98,15 +98,19 @@ final class CalendarUseCase {
         return updated
     }
 
-    /// 入れた予定を全部消す
-    func undoAll(in placement: EventPlacement) {
+    /// 入れた予定を全部消す。消せなかった数を返す（黙って残さない）
+    @discardableResult
+    func undoAll(in placement: EventPlacement) -> Int {
+        var failed = 0
         for placed in placement.events {
             if case let .added(identifier) = placed.state {
-                try? repository.remove(identifier: identifier)
+                if (try? repository.remove(identifier: identifier)) == nil { failed += 1 }
             }
         }
         reload()
+        return failed
     }
+
 
     // MARK: Google カレンダー
 
@@ -169,9 +173,11 @@ final class CalendarUseCase {
         }
     }
 
-    /// 読めなかったあとの「もう一度」
+    /// 読めなかったあとの「もう一度」。読んでいる間は isGoogleWorking でくるくるを出す
     func retryGoogle(now: Date) async {
-        guard isGoogleConnected else { return }
+        guard isGoogleConnected, !isGoogleWorking else { return }
+        isGoogleWorking = true
+        defer { isGoogleWorking = false }
         let range = googleRange ?? Self.defaultRange(now: now)
         await fetchGoogle(from: range.from, to: range.to)
     }

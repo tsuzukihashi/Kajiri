@@ -15,6 +15,19 @@ final class LogUseCase {
         self.context = context
         self.api = api
         self.notifications = notifications
+        recoverInterruptedWork()
+    }
+
+    /// 作っている途中でアプリが閉じられると「作っています」のまま止まり、「もう一度たのむ」も出なくなる。
+    /// 起動した時点で動いている頼みごとは1つも無いので、残っていたら「止まった」にして、やり直せるようにする
+    private func recoverInterruptedWork() {
+        let stuck = allSteps().filter { $0.workState == .working }
+        guard stuck.isEmpty == false else { return }
+        for step in stuck {
+            step.workState = .failed
+            step.workBody = String(localized: "作っている途中でアプリが閉じられたので、止まりました。もう一度たのめます。")
+        }
+        try? context.save()
     }
 
     // MARK: 通知
@@ -127,14 +140,19 @@ final class LogUseCase {
     // MARK: 割り直す
 
     func resplit(_ step: Step, now: Date) async throws -> ResplitResult {
-        try await api.resplit(logTitle: step.log?.title ?? step.title, step: step.title, postponed: step.postponeCount + 1, today: now)
+        let result = try await api.resplit(logTitle: step.log?.title ?? step.title, step: step.title, postponed: step.postponeCount + 1, today: now)
+        // 0本で返ってきたら、入れかえると元の薪だけ消える。割れなかったと伝えて、元の薪は残す
+        guard result.steps.isEmpty == false else {
+            throw KajiriAPIError.server(message: String(localized: "うまく割れませんでした。もう一度お試しください。"))
+        }
+        return result
     }
 
     /// 元の薪を、小さく割った薪に入れかえる（順番は元の位置に差し込む）
     func apply(_ result: ResplitResult, replacing step: Step, now: Date) {
-        guard let log = step.log else { return }
-        let base = step.order
         let pieces = result.steps.prefix(9)
+        guard let log = step.log, pieces.isEmpty == false else { return }
+        let base = step.order
         for (index, dto) in pieces.enumerated() {
             let piece = Step(order: base + index, dto: dto)
             piece.postponeCount = step.postponeCount + 1

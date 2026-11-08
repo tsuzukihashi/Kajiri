@@ -99,10 +99,16 @@ struct KajiriAPI: KajiriAPIProtocol {
             switch FunctionsErrorCode(rawValue: error.code) {
             case .unauthenticated?, .permissionDenied?:
                 throw KajiriAPIError.appCheckFailed
+            case .deadlineExceeded?:
+                throw KajiriAPIError.server(message: String(localized: "時間がかかりすぎて止まりました。少し待ってから、もう一度お試しください。"))
+            case .unavailable?:
+                throw KajiriAPIError.server(message: String(localized: "カジリにつながりませんでした。電波のよい所で、もう一度お試しください。"))
             default:
                 // サーバの HttpsError のメッセージ（日本語）がそのまま入っている
                 throw KajiriAPIError.server(message: error.localizedDescription)
             }
+        } catch let error as NSError where error.domain == NSURLErrorDomain {
+            throw KajiriAPIError.server(message: String(localized: "インターネットにつながっていないようです。つながったら、もう一度お試しください。"))
         }
     }
 }

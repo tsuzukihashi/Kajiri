@@ -38,6 +38,8 @@ struct WeeklySheet: View {
             Button { viewModel.move(-1, useCase: useCase, now: AppClock.now) } label: {
                 Image(systemName: "chevron.left").frame(width: 40, height: 40).background(Theme.chip, in: .circle)
             }
+            .disabled(!viewModel.canMoveBack)
+            .opacity(viewModel.canMoveBack ? 1 : 0.3)
             .accessibilityLabel(Text("前の週"))
             Button { viewModel.move(1, useCase: useCase, now: AppClock.now) } label: {
                 Image(systemName: "chevron.right").frame(width: 40, height: 40).background(Theme.chip, in: .circle)

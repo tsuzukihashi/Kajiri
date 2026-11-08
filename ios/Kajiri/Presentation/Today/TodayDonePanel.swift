@@ -1,14 +1,21 @@
 import SwiftUI
 
-/// 今日の分が終わったとき。片づけた本数を見せて、休むか続けるかを選んでもらう
+/// 今日の分が終わったとき。片づけた本数を見せて、休むか続けるかを選んでもらう。
+/// 「今日はおしまい」を押したら、カジリが「おつかれさま」と言って座り、選ぶところが「また明日」の札に変わる。
+/// 押しても何も変わらない、を作らない（2026-11-08 に実機で「押しても何も動かない」と言われた）
 struct TodayDonePanel: View {
     let doneToday: Int
     let totalDone: Int
     /// カジリの薪（届いたものがあれば、ここでも受け取れる）
     let inbox: [Step]
+    /// 今日はおしまいにしたか
+    let isClosed: Bool
+    /// 今日やれる自分の薪が、まだ残っているか（無ければ「もう1本だけ」を出さない。押しても何も起きないので）
+    let hasMore: Bool
     let onWeekly: () -> Void
     let onMore: () -> Void
     let onFinish: () -> Void
+    let onThrow: () -> Void
 
     @Environment(\.columnLayout) private var layout
 
@@ -69,9 +76,13 @@ struct TodayDonePanel: View {
 
     private var celebration: some View {
         VStack(spacing: 4) {
-            KajiriBubble(text: String(localized: "今日の\(doneToday)本、おわり。"))
+            KajiriBubble(text: isClosed ? String(localized: "おつかれさま。また明日。") : String(localized: "今日の\(doneToday)本、おわり。"))
+                .id(isClosed)
+                .transition(.scale(scale: 0.85, anchor: .bottom).combined(with: .opacity))
                 .padding(.top, 16)
-            KajiriImage(pose: .dam, size: 220)
+            KajiriImage(pose: isClosed ? .sit : .dam, size: 220)
+                .id(isClosed ? "sit" : "dam")
+                .transition(.asymmetric(insertion: .scale(scale: 0.9).combined(with: .opacity), removal: .opacity))
             Button(action: onWeekly) {
                 DoneCountCard(totalDone: totalDone, doneToday: doneToday)
             }
@@ -80,13 +91,65 @@ struct TodayDonePanel: View {
         }
     }
 
+    @ViewBuilder
     private var choices: some View {
-        VStack(spacing: 8) {
-            Button("今日はおしまい", action: onFinish).buttonStyle(PrimaryButtonStyle())
-            Button("もう1本だけ", action: onMore)
+        Group {
+            if isClosed {
+                closedCard
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            } else {
+                VStack(spacing: 8) {
+                    Button("今日はおしまい", action: onFinish).buttonStyle(PrimaryButtonStyle())
+                    moreButton(label: String(localized: "もう1本だけ"))
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.spring(duration: 0.45, bounce: 0.25), value: isClosed)
+        .sensoryFeedback(.success, trigger: isClosed) { _, closed in closed }
+    }
+
+    /// 「今日はおしまい」を押したあと。明日どうなるかを言って、やっぱり続けたい人の道も残す
+    private var closedCard: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "moon.stars.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Theme.amber)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("今日はここまで")
+                        .font(.system(size: 17, weight: .heavy))
+                    Text("明日の分は、明日ここに並べておきます。")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.sub)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(.white, in: .rect(cornerRadius: 20))
+            moreButton(label: String(localized: "やっぱり、もう1本だけ"))
+        }
+    }
+
+    /// 続ける道。今日やれる薪が残っていなければ、押しても何も起きないので「新しく投げる」にする
+    @ViewBuilder
+    private func moreButton(label: String) -> some View {
+        if hasMore {
+            Button(label, action: onMore)
                 .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(Theme.ink)
                 .frame(minHeight: 48)
+        } else {
+            VStack(spacing: 2) {
+                Button("新しく投げる", action: onThrow)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Theme.ink)
+                    .frame(minHeight: 44)
+                Text("今日やれる薪は、もう残っていません。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.sub)
+            }
         }
     }
 }
@@ -120,24 +183,39 @@ private struct DoneCountCard: View {
 #if DEBUG
 #Preview("届いたものなし") {
     NavigationStack {
-        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: [], onWeekly: {}, onMore: {}, onFinish: {})
+        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: [], isClosed: false, hasMore: true, onWeekly: {}, onMore: {}, onFinish: {}, onThrow: {})
             .background(Theme.ground)
     }
 }
 
 #Preview("2列（Duo を開いた内側）", traits: .fixedLayout(width: 951, height: 635)) {
     NavigationStack {
-        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: [], onWeekly: {}, onMore: {}, onFinish: {})
+        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: [], isClosed: false, hasMore: true, onWeekly: {}, onMore: {}, onFinish: {}, onThrow: {})
             .background(Theme.ground)
     }
     .environment(\.columnLayout, .split(leading: 455, gutter: 40))
+}
+
+#Preview("今日はおしまいにした") {
+    NavigationStack {
+        TodayDonePanel(doneToday: 5, totalDone: 5, inbox: [], isClosed: true, hasMore: true, onWeekly: {}, onMore: {}, onFinish: {}, onThrow: {})
+            .background(Theme.ground)
+    }
+}
+
+#Preview("押して確かめる") {
+    @Previewable @State var closed = false
+    NavigationStack {
+        TodayDonePanel(doneToday: 5, totalDone: 5, inbox: [], isClosed: closed, hasMore: false, onWeekly: {}, onMore: { closed = false }, onFinish: { closed = true }, onThrow: {})
+            .background(Theme.ground)
+    }
 }
 
 #Preview("届いたものがある") {
     let (useCase, container) = LogUseCase.preview(filled: true)
     let inbox = useCase.allSteps().filter { $0.owner == .kajiri }
     return NavigationStack {
-        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: inbox, onWeekly: {}, onMore: {}, onFinish: {})
+        TodayDonePanel(doneToday: 3, totalDone: 15, inbox: inbox, isClosed: false, hasMore: false, onWeekly: {}, onMore: {}, onFinish: {}, onThrow: {})
             .background(Theme.ground)
     }
     .modelContainer(container)

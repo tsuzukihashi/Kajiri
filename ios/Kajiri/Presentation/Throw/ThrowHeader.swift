@@ -17,6 +17,9 @@ struct ThrowHeader: View {
                         .frame(width: 44, height: 44)
                         .background(Color(white: 0.39), in: .circle)
                 }
+                // 分けている最中に閉じると、結果（予定・戻す）が見えないまま進むので押せなくする
+                .disabled(isSplitting)
+                .opacity(isSplitting ? 0.35 : 1)
                 .accessibilityLabel(Text("閉じる"))
                 Spacer()
                 Button(action: onSplit) {
